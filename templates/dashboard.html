@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+{% endblock %}
+{% block content %}
+    <h2>Dashboard</h2>
+        <!-- Cards de resumo -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total de Vendas</h3>
+                <p>R$ 10.500,00</p>
+            </div>
+            <div class="card">
+                <h3>Pedidos Pendentes</h3>
+                <p>8</p>
+            </div>
+            <div class="card">
+                <h3>Afiliados Ativos</h3>
+                <p>15</p>
+            </div>
+        </div>
+
+        <!-- Gráfico (simulação) -->
+        <div class="grafico">
+            <h3>Crescimento das Vendas</h3>
+            <img src="{{ url_for('static', filename='grafico.png') }}" alt="Gráfico de Vendas">
+        </div>
+
+        <!-- Tabela de últimos pedidos -->
+        <h3>Últimos Pedidos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>#101</td>
+                    <td>João Silva</td>
+                    <td>R$ 320,00</td>
+                    <td class="pendente">Pendente</td>
+                </tr>
+                <tr>
+                    <td>#102</td>
+                    <td>Maria Souza</td>
+                    <td>R$ 150,00</td>
+                    <td class="concluido">Concluído</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Botões de ação -->
+        <div class="acoes">
+            <button onclick="window.location.href='/pedidos'">Gerenciar Pedidos</button>
+            <button onclick="window.location.href='/afiliados'">Ver Afiliados</button>
+        </div>
+    </div>
+{% endblock %}

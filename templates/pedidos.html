@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Pedidos{% endblock %}
+ <link rel="stylesheet" href="style.css">
+{% block content %}
+    <h2>Pedidos</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Status</th>
+                <th>Valor</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aqui os pedidos serão carregados dinamicamente -->
+        </tbody>
+    </table>
+{% endblock %}

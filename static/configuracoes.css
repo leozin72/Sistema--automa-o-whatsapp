@@ -1,0 +1,52 @@
+.config-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    text-align: left;
+    font-family: Arial, sans-serif;
+}
+
+.config-section {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn-salvar {
+    width: 100%;
+    padding: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.btn-salvar:hover {
+    background: #218838;
+}

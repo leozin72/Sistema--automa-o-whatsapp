@@ -1,0 +1,131 @@
+/* Importação de fonte elegante */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Reset de estilos */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Estilização geral da página */
+body {
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+}
+
+/* Título principal */
+h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+/* Parágrafo de descrição */
+p {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+/* Container dos filtros */
+.filtros {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filtros label {
+    font-weight: 600;
+}
+
+.filtros input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.filtros button {
+    background-color: #ffcc00;
+    color: #222;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.filtros button:hover {
+    background-color: #e6b800;
+}
+
+/* Estilização da tabela */
+table {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #ffcc00;
+    color: #222;
+    font-weight: bold;
+}
+
+/* Linhas alternadas */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Botão de exportação */
+button {
+    display: block;
+    width: 200px;
+    margin: 20px auto;
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .filtros {
+        flex-direction: column;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    button {
+        width: 100%;
+    }
+}

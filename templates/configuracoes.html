@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='configuracoes.css') }}">
+
+<div class="config-container">
+    <h2>⚙️ Configurações do Sistema</h2>
+    <p>Gerencie permissões, integrações e ajustes gerais.</p>
+
+    <div class="config-section">
+        <h3>🔐 Segurança</h3>
+        <label>
+            <input type="checkbox" checked> Ativar autenticação em duas etapas
+        </label>
+        <label>
+            <input type="checkbox"> Receber alertas de login suspeito
+        </label>
+    </div>
+
+    <div class="config-section">
+        <h3>🤖 Integrações</h3>
+        <label>
+            <input type="checkbox" checked> Conectar ao WhatsApp
+        </label>
+        <label>
+            <input type="checkbox"> Conectar ao Instagram
+        </label>
+        <label>
+            <input type="checkbox"> Conectar ao Facebook Messenger
+        </label>
+    </div>
+
+    <div class="config-section">
+        <h3>💰 Pagamentos</h3>
+        <label>
+            <input type="checkbox" checked> Ativar Pagamento via PIX
+        </label>
+        <label>
+            <input type="checkbox"> Ativar Pagamento via Cartão de Crédito
+        </label>
+        <label>
+            <input type="checkbox"> Ativar Pagamento via Boleto Bancário
+        </label>
+    </div>
+
+    <div class="config-section">
+        <h3>📢 Notificações</h3>
+        <label>
+            <input type="checkbox" checked> Receber notificações de novas vendas
+        </label>
+        <label>
+            <input type="checkbox" checked> Receber relatórios semanais por e-mail
+        </label>
+        <label>
+            <input type="checkbox"> Ativar notificações push no celular
+        </label>
+    </div>
+
+    <div class="config-section">
+        <h3>🎨 Personalização</h3>
+        <label>Cor do Tema:</label>
+        <select id="theme-color">
+            <option value="dark">Escuro</option>
+            <option value="light">Claro</option>
+            <option value="blue">Azul</option>
+        </select>
+    </div>
+
+    <button class="btn-salvar">💾 Salvar Configurações</button>
+</div>
+
+<script>
+document.querySelector(".btn-salvar").addEventListener("click", function() {
+    alert("Configurações salvas com sucesso! ✅");
+});
+</script>
+
+{% endblock %}

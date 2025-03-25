@@ -1,0 +1,92 @@
+/* Reset de margem e padding para deixar tudo uniforme */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Definição de cores principais */
+:root {
+    --primary-color: #222; /* Fundo escuro */
+    --secondary-color: #ffcc00; /* Destaque dourado */
+    --text-color: #fff; /* Texto principal */
+    --card-bg: #333; /* Fundo dos cards */
+    --border-color: #444; /* Bordas sutis */
+}
+
+/* Aplicando fundo e cor padrão */
+body {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Centralizando o conteúdo */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* Botões personalizados */
+button {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #ffdd44;
+}
+
+/* Cabeçalhos */
+h1, h2, h3 {
+    color: var(--secondary-color);
+    text-align: center;
+}
+
+/* Inputs personalizados */
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+/* Estilizando tabelas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+table th {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+}

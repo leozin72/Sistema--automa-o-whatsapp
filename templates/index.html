@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Negócios</title>
+     <link rel="stylesheet" href="style.css">
+    <script src="https://serratus.github.io/quaggaJS/examples/js/quagga.min.js"></script> <!-- Biblioteca do leitor -->
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Gestão de Produtos</h2>
+
+        <form id="produtoForm">
+            <input type="hidden" id="produtoId">
+            
+            <div class="mb-3">
+                <label>Nome:</label>
+                <input type="text" id="nome" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Preço:</label>
+                <input type="number" id="preco" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Quantidade:</label>
+                <input type="number" id="quantidade" class="form-control" required>
+            </div>
+
+            <!-- Campo de código de barras -->
+            <div class="mb-3">
+                <label>Código de Barras:</label>
+                <div class="input-group">
+                    <input type="text" id="codigoBarras" class="form-control">
+                    <button type="button" class="btn btn-secondary" onclick="abrirLeitor()">Ler Código</button>
+                </div>
+            </div>
+
+            <!-- Upload de imagem -->
+            <div class="mb-3">
+                <label>Foto do Produto:</label>
+                <input type="file" id="foto" class="form-control" accept="image/*">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </form>
+
+        <h3 class="mt-5">Lista de Produtos</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Quantidade</th>
+                    <th>Código de Barras</th>
+                    <th>Foto</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="produtosTable"></tbody>
+        </table>
+    </div>
+
+    <!-- Janela para escanear código de barras -->
+    <div id="leitorContainer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+        <video id="leitorVideo" style="width:100%; height:auto;"></video>
+        <button onclick="fecharLeitor()" class="btn btn-danger">Fechar</button>
+    </div>
+
+    <script>
+        const apiUrl = "http://127.0.0.1:5000/produtos";
+
+        function carregarProdutos() {
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("produtosTable");
+                    tbody.innerHTML = "";
+                    data.produtos.forEach(produto => {
+                        const row = `<tr>
+                            <td>${produto.id}</td>
+                            <td>${produto.nome}</td>
+                            <td>R$ ${produto.preco}</td>
+                            <td>${produto.quantidade}</td>
+                            <td>${produto.codigoBarras || '-'}</td>
+                            <td><img src="${produto.foto || ''}" width="50"></td>
+                            <td>
+                                <button onclick="editarProduto(${produto.id}, '${produto.nome}', ${produto.preco}, ${produto.quantidade}, '${produto.codigoBarras}', '${produto.foto}')" class="btn btn-warning btn-sm">Editar</button>
+                                <button onclick="deletarProduto(${produto.id})" class="btn btn-danger btn-sm">Excluir</button>
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                });
+        }
+
+        function editarProduto(id, nome, preco, quantidade, codigoBarras, foto) {
+            document.getElementById("produtoId").value = id;
+            document.getElementById("nome").value = nome;
+            document.getElementById("preco").value = preco;
+            document.getElementById("quantidade").value = quantidade;
+            document.getElementById("codigoBarras").value = codigoBarras;
+        }
+
+        function deletarProduto(id) {
+            fetch(`${apiUrl}/${id}`, { method: "DELETE" })
+                .then(res => res.json())
+                .then(() => carregarProdutos());
+        }
+
+        document.getElementById("produtoForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const id = document.getElementById("produtoId").value;
+            const nome = document.getElementById("nome").value;
+            const preco = document.getElementById("preco").value;
+            const quantidade = document.getElementById("quantidade").value;
+            const codigoBarras = document.getElementById("codigoBarras").value;
+            const foto = document.getElementById("foto").files[0]; // Captura a imagem
+
+            const formData = new FormData();
+            formData.append("nome", nome);
+            formData.append("preco", preco);
+            formData.append("quantidade", quantidade);
+            formData.append("codigoBarras", codigoBarras);
+            if (foto) formData.append("foto", foto);
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `${apiUrl}/${id}` : apiUrl;
+
+            fetch(url, {
+                method: method,
+                body: formData
+            })
+            .then(res => res.json())
+            .then(() => {
+                document.getElementById("produtoForm").reset();
+                document.getElementById("produtoId").value = "";
+                carregarProdutos();
+            });
+        });
+
+        function abrirLeitor() {
+            document.getElementById("leitorContainer").style.display = "block";
+            Quagga.init({
+                inputStream: { type: "LiveStream", target: "#leitorVideo" },
+                decoder: { readers: ["ean_reader"] } // Suporta códigos de barras comuns
+            }, function(err) {
+                if (!err) {
+                    Quagga.start();
+                }
+            });
+
+            Quagga.onDetected(function(result) {
+                document.getElementById("codigoBarras").value = result.codeResult.code;
+                fecharLeitor();
+            });
+        }
+
+        function fecharLeitor() {
+            document.getElementById("leitorContainer").style.display = "none";
+            Quagga.stop();
+        }
+
+        carregarProdutos();
+    </script>
+</body>
+</html>

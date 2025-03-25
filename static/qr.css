@@ -1,0 +1,40 @@
+.qr-code-container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+h2 {
+    color: #333;
+    font-size: 24px;
+}
+
+#qr-code-display {
+    margin-top: 20px;
+}
+
+.qr-code-image {
+    max-width: 200px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+}
+
+.generate-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.generate-button:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    margin-top: 15px;
+    font-size: 14px;
+}

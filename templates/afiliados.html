@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Área do Afiliado{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='afiliados.css') }}">
+
+<div class="afiliados-container">
+    <h2>🚀 Bem-vindo à sua Área de Afiliado</h2>
+    <p>Acompanhe suas indicações e comissões de forma simples e dinâmica.</p>
+
+    <div class="saldo-afiliado">
+        <h3>💰 Seus Ganhos Totais: <span class="valor">R$ 1.250,00</span></h3>
+        <p>Continue compartilhando para aumentar seus ganhos!</p>
+    </div>
+
+    <div class="link-afiliado">
+        <p>📢 Seu link de afiliado:</p>
+        <input type="text" class="form-control" value="https://site.com/?ref=12345" id="linkAfiliado" readonly>
+        <button class="btn-copiar" onclick="copiarLink()">📋 Copiar Link</button>
+    </div>
+
+    <div class="progresso-afiliado">
+        <h3>🎯 Progresso de Vendas</h3>
+        <p>Nível atual: <span class="nivel">Bronze</span></p>
+        <progress value="30" max="100"></progress>
+        <p>Faltam <strong>5 vendas</strong> para subir de nível!</p>
+    </div>
+
+    <div class="missoes-afiliado">
+        <h3>🔥 Missões do Dia</h3>
+        <ul>
+            <li>🔹 Compartilhe seu link com 3 amigos ✅</li>
+            <li>🔹 Faça sua primeira venda do dia ⏳</li>
+            <li>🔹 Alcance R$ 200 em comissões hoje ⏳</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+function copiarLink() {
+    var link = document.getElementById("linkAfiliado");
+    link.select();
+    document.execCommand("copy");
+    alert("📋 Link copiado com sucesso!");
+}
+</script>
+
+{% endblock %}

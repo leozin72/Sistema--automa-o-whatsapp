@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestão de Negócios{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Estilo principal da estrutura -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Gestão de Negócios</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pedidos">Pedidos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/relatorios">Relatórios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/afiliados">Afiliados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/whatsapp">WhatsApp</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/qrcode">Gerar Qr-coud</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/configuracoes">Configurações</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="container mt-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Botão Voltar ao Topo -->
+    <button id="backToTop" class="btn btn-warning">↑ Topo</button>
+
+    <!-- Rodapé -->
+    <footer class="footer mt-5 bg-dark text-light text-center p-3">
+        <div class="container">
+            <div class="row">
+                <!-- Links rápidos -->
+                <div class="col-md-4">
+                    <h5>Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/dashboard" class="text-light">Dashboard</a></li>
+                        <li><a href="/pedidos" class="text-light">Pedidos</a></li>
+                        <li><a href="/afiliados" class="text-light">Afiliados</a></li>
+                        <li><a href="/whatsapp" class="text-light">WhatsApp</a></li>
+                    </ul>
+                </div>
+
+                <!-- Redes sociais -->
+                <div class="col-md-4">
+                    <h5>Redes Sociais</h5>
+                    <a href="https://wa.me/31982112212" class="text-light me-3" target="_blank">WhatsApp</a>
+                    <a href="https://instagram.com/seuinsta" class="text-light" target="_blank">Instagram</a>
+                </div>
+
+                <!-- Informações de contato -->
+                <div class="col-md-4">
+                    <h5>Contato</h5>
+                    <p>Email: suporte@gestaodenegocios.com</p>
+                    <p>Telefone: (31) 98211-2212</p>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="mt-3">
+                <p>&copy; 2025 Gestão de Negócios. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script para botão "Voltar ao topo" -->
+    <script>
+        const backToTopButton = document.getElementById("backToTop");
+
+        window.onscroll = function() {
+            if (document.documentElement.scrollTop > 200) {
+                backToTopButton.style.display = "block";
+            } else {
+                backToTopButton.style.display = "none";
+            }
+        };
+
+        backToTopButton.onclick = function() {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+    </script>
+
+</body>
+</html>

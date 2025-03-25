@@ -1,0 +1,185 @@
+/* Configurações Globais */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #f4f8fc; /* Tom leve e moderno para o fundo */
+    color: #333; /* Texto em tom neutro para boa leitura */
+    margin: 0;
+    padding: 0;
+}
+
+/* Container Principal */
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff; /* Fundo branco para contraste */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra leve */
+    overflow: hidden;
+}
+
+/* Seções */
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f9fcff; /* Fundo leve e suave */
+    border-radius: 10px;
+    border: 2px solid #e0e7f1; /* Contorno sutil */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.section:hover {
+    transform: scale(1.02); /* Leve destaque no hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Títulos */
+h2 {
+    color: #0d6efd; /* Azul vibrante para os títulos */
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+legend {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+
+/* Formulários */
+form {
+    display: grid;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-weight: bold;
+    color: #555;
+}
+
+input, select, textarea {
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #f9f9f9;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #0d6efd; /* Azul para foco */
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.4);
+}
+
+/* Botões */
+button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+    transform: scale(1.03); /* Leve destaque no hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.save-button {
+    background: #0d6efd; /* Azul vibrante */
+    color: #fff;
+}
+
+.save-button:hover {
+    background: #0a58ca; /* Azul escuro no hover */
+}
+
+/* Listas de Itens Adicionados */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.flow-list li, .accompaniment-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #f4f8fc;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.flow-list li:hover, .accompaniment-list li:hover {
+    background: #e8f2fc; /* Destaque suave ao passar o mouse */
+}
+
+.flow-list li span, .accompaniment-list li span {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.saved-message-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 10px 0;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+
+.message-header {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.message-details ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.message-details li {
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #555;
+}
+
+.media-label {
+    font-weight: bold;
+    color: #007BFF; /* Azul para destacar mídia */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    form {
+        grid-template-columns: 1fr; /* Coluna única para telas menores */
+    }
+
+    button {
+        font-size: 0.9rem;
+    }
+}

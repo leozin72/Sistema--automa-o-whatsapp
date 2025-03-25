@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Automação Inteligente{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='whatsapp.css') }}?v={{ time }}">
+
+<div class="container">
+    <!-- Seção de Configuração de Saudação -->
+    <section id="saudacao-section" class="section">
+        <h2>Saudações</h2>
+        <form id="saudacao-form">
+            <div class="form-group">
+                <label for="saudacao">Saudação Inicial:</label>
+                <input type="text" id="saudacao" placeholder="Digite sua saudação..." required>
+            </div>
+            <div class="form-group">
+                <label for="regra-saudacao">Regra de Saudação:</label>
+                <select id="regra-saudacao">
+                    <option value="*">Enviar Sempre</option>
+                    <option value="**">Enviar se não houver resposta em 1 hora</option>
+                    <option value="***">Enviar uma vez por dia</option>
+                    <option value="****">Enviar a cada 3 dias</option>
+                </select>
+            </div>
+            <button type="submit" class="save-button">Salvar Saudação</button>
+        </form>
+    </section>
+
+    <!-- Seção de Configuração de Fluxo de Mensagens -->
+    <section id="fluxo-section" class="section">
+        <h2>Fluxo de Mensagens</h2>
+        <form id="fluxo-form">
+            <div class="form-group">
+                <label for="tipo-chave">Tipo de Chave:</label>
+                <select id="tipo-chave">
+                    <option value="exata">Palavra Exata</option>
+                    <option value="contem">Palavra Contém</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="chave">Palavra-Chave:</label>
+                <input type="text" id="chave" placeholder="Digite a palavra-chave..." required>
+            </div>
+
+            <!-- Respostas dentro do fluxo -->
+            <fieldset id="fluxo-container">
+                <legend>Respostas no Fluxo</legend>
+                <div class="form-group">
+                    <label for="conteudo">Conteúdo da Resposta:</label>
+                    <textarea id="conteudo" placeholder="Digite sua resposta..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="arquivo-upload">Conteúdo Multimídia:</label>
+                    <input type="file" id="arquivo-upload" accept=".jpg,.jpeg,.png,.mp3,.mp4">
+                </div>
+
+                <div class="form-group">
+                    <label for="intervalo">Intervalo Antes desta Mensagem (segundos):</label>
+                    <input type="number" id="intervalo" placeholder="Digite o intervalo..." min="1" max="60">
+                </div>
+
+                <button type="button" onclick="adicionarAoFluxo()">Adicionar ao Fluxo</button>
+            </fieldset>
+
+            <!-- Lista de fluxo -->
+            <ul id="lista-fluxo" class="flow-list">
+                <!-- As mensagens adicionadas aparecerão aqui -->
+            </ul>
+
+            <button type="submit" class="save-button">Salvar Fluxo</button>
+        </form>
+    </section>
+
+    <!-- Seção de Configuração de Mensagens de Acompanhamento -->
+    <section id="acompanhamento-section" class="section">
+        <h2>Mensagens de Acompanhamento</h2>
+        <form id="acompanhamento-form">
+            <div class="form-group">
+                <label for="tempo-acompanhamento">Tempo de Acompanhamento (minutos):</label>
+                <input type="number" id="tempo-acompanhamento" placeholder="Digite o tempo..." min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="conteudo-acompanhamento">Mensagem de Acompanhamento:</label>
+                <textarea id="conteudo-acompanhamento" placeholder="Digite sua mensagem..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="arquivo-acompanhamento">Conteúdo Multimídia:</label>
+                <input type="file" id="arquivo-acompanhamento" accept=".jpg,.jpeg,.png,.mp3,.mp4">
+            </div>
+
+            <button type="button" onclick="adicionarAcompanhamento()">Adicionar Mensagem</button>
+
+            <!-- Lista de mensagens de acompanhamento -->
+            <ul id="lista-acompanhamento" class="accompaniment-list">
+                <!-- As mensagens adicionadas aparecerão aqui -->
+            </ul>
+
+            <button type="submit" class="save-button">Salvar Acompanhamento</button>
+        </form>
+    </section>
+
+    <!-- Seção de Exibição das Mensagens Salvas -->
+    <section id="mensagens-salvas-section" class="section">
+    <h2>Mensagens Salvas</h2>
+    <ul id="mensagens-salvas" class="saved-messages-list">
+        {% for mensagem in mensagens %}
+        <li class="saved-message-item">
+            <div class="message-header">
+                <strong>Chave:</strong> {{ mensagem['chave'] }} <br>
+                <strong>Tipo de Chave:</strong> {{ mensagem['tipo'] }} <br>
+            </div>
+            <div class="message-details">
+                <ul>
+                    {% for item in mensagem['mensagens'] %}
+                    <li>
+                        <strong>Conteúdo:</strong>
+                        {% if item['tipo'] == "texto" %}
+                            "{{ item['conteudo'] }}"
+                        {% elif item['tipo'] == "imagem" %}
+                            <span class="media-label">Imagem</span>
+                        {% elif item['tipo'] == "audio" %}
+                            <span class="media-label">Áudio</span>
+                        {% else %}
+                            <span class="media-label">Outro Tipo</span>
+                        {% endif %}
+                        <br>
+                        <strong>Intervalo:</strong> {{ item['intervalo'] }} segundos
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+</div>
+
+<script src="{{ url_for('static', filename='js/whatsapp.js') }}"></script>
+{% endblock %}

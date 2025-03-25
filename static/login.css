@@ -1,0 +1,84 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Fundo da página */
+body {
+    background: #ecf0f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container do login */
+.login-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Título */
+.login-container h2 {
+    color: #3498db;
+    margin-bottom: 20px;
+}
+
+/* Campos do formulário */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    text-align: left;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #2ecc71;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+/* Botão de login */
+button {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #27ae60;
+}
+
+/* Link de cadastro */
+.cadastro-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.cadastro-link a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.cadastro-link a:hover {
+    text-decoration: underline;
+}

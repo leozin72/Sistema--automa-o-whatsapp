@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='qr.css') }}">
+
+<div class="container qr-code-container">
+    <h2>QR Code</h2>
+    <div id="qr-code-section">
+        <p>Escaneie o QR Code abaixo para acessar sua conta ou informações:</p>
+        <div id="qr-code-display">
+            <!-- QR Code será carregado aqui -->
+        </div>
+        <button id="gerar-qr-button" class="generate-button">Gerar QR Code</button>
+    </div>
+    <div id="error-message" class="error"></div>
+</div>
+
+<script>
+    document.getElementById('gerar-qr-button').addEventListener('click', async function () {
+        const qrDisplay = document.getElementById('qr-code-display');
+        const errorMessage = document.getElementById('error-message');
+
+        try {
+            const response = await fetch('/gerar_qr');
+            if (!response.ok) throw new Error("Erro ao obter o QR Code");
+
+            const data = await response.json();
+
+            // Limpar erros anteriores e exibir QR code
+            errorMessage.innerText = "";
+            qrDisplay.innerHTML = `<img src="data:image/png;base64,${data.qr_code}" alt="QR Code gerado" class="qr-code-image">`;
+        } catch (error) {
+            // Exibir mensagem de erro
+            errorMessage.innerText = "Erro ao gerar QR Code. Por favor, tente novamente.";
+            qrDisplay.innerHTML = "";
+        }
+    });
+</script>
+{% endblock %}
