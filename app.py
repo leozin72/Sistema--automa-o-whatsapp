@@ -26,7 +26,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'ff6f262dbc928a9717a28702ff2b66c2fe5c9e
 
 # Configuração do Banco de Dados (SQLite)
 (PostgreSQL)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('postgresql://postgres:aDaYGOAvfxdDdZbuCFnzAlfNYnpEbIEa@postgres.railway.internal:5432/railwaypostgresql://postgres:aDaYGOAvfxdDdZbuCFnzAlfNYnpEbIEa@postgres.railway.internal:5432/railway', 'sqlite:///:memory:')  # Fallback para SQLite em memória
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///:memory:')  # Fallback para SQLite em memória
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuração de Sessão
