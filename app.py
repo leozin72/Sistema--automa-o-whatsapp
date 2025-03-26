@@ -22,11 +22,11 @@ def add_header(response):
     response.headers["Expires"] = "-1"
     return response
     
-app.secret_key = "6bVXmhIvaUgf2JXW8eVRvWEP3rDDYXTt"
+app.secret_key = os.getenv('SECRET_KEY', 'ff6f262dbc928a9717a28702ff2b66c2fe5c9e268486fbb1') 
 
 # Configuração do Banco de Dados (SQLite)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "database.db")}'
+(PostgreSQL)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('postgresql://postgres:aDaYGOAvfxdDdZbuCFnzAlfNYnpEbIEa@postgres.railway.internal:5432/railwaypostgresql://postgres:aDaYGOAvfxdDdZbuCFnzAlfNYnpEbIEa@postgres.railway.internal:5432/railway', 'sqlite:///:memory:')  # Fallback para SQLite em memória
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuração de Sessão
