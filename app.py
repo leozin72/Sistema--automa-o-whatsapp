@@ -24,7 +24,11 @@ def add_header(response):
     
 app.secret_key = os.getenv('SECRET_KEY', 'ff6f262dbc928a9717a28702ff2b66c2fe5c9e268486fbb1') 
 
+<<<<<<< HEAD
 # Configuração do Banco de Dados (SQLite)
+=======
+# Configuração do Banco de Dados
+>>>>>>> 46e429e (Atualizando o projeto para deploy no Railway)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///:memory:')  # Fallback para SQLite em memória
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
