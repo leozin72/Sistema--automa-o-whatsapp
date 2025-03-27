@@ -10,8 +10,6 @@ logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 # Configuração do Flask
-from flask import Flask
-
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # 🔹 Define cabeçalhos para evitar cache
@@ -21,12 +19,17 @@ def add_header(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "-1"
     return response
-    
-app.secret_key = "6bVXmhIvaUgf2JXW8eVRvWEP3rDDYXTt"
 
-# Configuração do Banco de Dados (SQLite)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "database.db")}'
+app.secret_key = os.getenv('SECRET_KEY', 'ff6f262dbc928a9717a28702ff2b66c2fe5c9e268486fbb1')
+
+# Configuração do Banco de Dados (Agora com PostgreSQL)
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://meu_bot_user:PhHDd8EOxAWWuYxjOZIliQ7SqqypjdzU@dpg-cvhi0nl2ng1s73agvo00-a/meu_bot')
+
+# Ajusta a URL para evitar problemas com SSL (Render pode exigir SSL em conexões PostgreSQL)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuração de Sessão
@@ -38,7 +41,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # 🔹 Agora importamos o banco e inicializamos corretamente
 from models import db
-db.init_app(app)  # ✅ Agora o app é registrado corretamente no SQLAlchemy
+db.init_app(app)
 
 # Inicializa o Flask-Migrate
 migrate = Migrate(app, db)
