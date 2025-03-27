@@ -133,17 +133,27 @@ def whatsapp():
 @login_required
 def gerar_qr():
     try:
+        # Obtenha o usuário da sessão
         usuario = Usuario.query.filter_by(id=session.get('usuario')).first()
         if not usuario:
             return jsonify({"error": "Usuário não encontrado"}), 400
 
+        # Faz a requisição ao serviço de geração de QR Code
         resposta = requests.get(f"http://localhost:3000/generate-qr/{usuario.email}")
-        dados = resposta.json()
-
         if resposta.status_code == 200:
-            return jsonify({"qr_code": dados['qr_code']})
+            dados = resposta.json()
+            return jsonify({"qr_code": dados.get('qr_code')}), 200
+
+        # Trata erros retornados pela API de geração do QR Code
+        dados = resposta.json()
         return jsonify({"error": dados.get("error", "Erro desconhecido")}), resposta.status_code
+
+    except requests.exceptions.RequestException as e:
+        # Captura erros relacionados à conexão com a API
+        return jsonify({"error": f"Erro ao conectar ao serviço de QR Code: {str(e)}"}), 500
+
     except Exception as e:
+        # Captura outros erros não previstos
         return jsonify({"error": f"Erro ao obter QR Code: {str(e)}"}), 500
 
 @routes.route('/buscar_id/<int:id_usuario>', methods=['GET'])

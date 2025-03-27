@@ -39,27 +39,18 @@ function validarFluxo(fluxo) {
 }
 
 // 🔹 Função para executar um fluxo de mensagens (texto, imagem, áudio, vídeo)
-async function executarFluxo(sock, fluxo, remetente) {
+async function executarFluxo(client, fluxo, remetente) {
     for (const mensagem of fluxo) {
         setTimeout(async () => {
             try {
                 if (mensagem.tipo === "texto") {
-                    await sock.sendMessage(remetente, { text: mensagem.conteudo });
+                    await client.sendMessage(remetente, mensagem.conteudo);
                 } else if (mensagem.tipo === "imagem") {
-                    await sock.sendMessage(remetente, {
-                        image: { url: mensagem.conteudo },
-                        caption: mensagem.legenda || ""
-                    });
+                    await client.sendMessage(remetente, { media: mensagem.conteudo, caption: mensagem.legenda || "" });
                 } else if (mensagem.tipo === "audio") {
-                    await sock.sendMessage(remetente, {
-                        audio: { url: mensagem.conteudo },
-                        mimetype: "audio/mp3"
-                    });
+                    await client.sendMessage(remetente, { media: mensagem.conteudo, mimetype: 'audio/mp3' });
                 } else if (mensagem.tipo === "video") {
-                    await sock.sendMessage(remetente, {
-                        video: { url: mensagem.conteudo },
-                        caption: mensagem.legenda || ""
-                    });
+                    await client.sendMessage(remetente, { media: mensagem.conteudo, caption: mensagem.legenda || "" });
                 }
             } catch (error) {
                 console.error(`Erro ao enviar mensagem do fluxo:`, error.message);
@@ -69,25 +60,24 @@ async function executarFluxo(sock, fluxo, remetente) {
 }
 
 // 🔹 Regras de Saudação (integradas com fluxos e acompanhamento)
-async function regrasDeSaudacao(config, remetente, sock) {
+async function regrasDeSaudacao(config, remetente, client) {
     if (config.regra_saudacao && config.fluxo_saudacao) {
         const regra = config.regra_saudacao;
-        const agora = new Date();
 
         if (regra === "*") {
-            await executarFluxo(sock, config.fluxo_saudacao, remetente);
+            await executarFluxo(client, config.fluxo_saudacao, remetente);
         }
     }
 }
 
 // 🔹 Função para gerenciar mensagens de acompanhamento
-async function mensagensAcompanhamento(sock, config, remetente, ultimaInteracao) {
+async function mensagensAcompanhamento(client, config, remetente, ultimaInteracao) {
     const agora = new Date();
     const diferencaMinutos = (agora - ultimaInteracao) / (1000 * 60); // Converte para minutos
 
     if (diferencaMinutos >= config.acompanhamento_tempo) {
         console.log(`⏳ Enviando mensagem de acompanhamento para ${remetente}`);
-        await executarFluxo(sock, config.fluxo_acompanhamento, remetente);
+        await executarFluxo(client, config.fluxo_acompanhamento, remetente);
     }
 }
 

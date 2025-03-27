@@ -1,5 +1,5 @@
-const { makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode');
+const { Client } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
@@ -8,7 +8,6 @@ const { buscarIdUsuario, buscarConfiguracoes, regrasDeSaudacao } = require('./fu
 
 const app = express();
 const sessions = {};
-const activeQrCodes = {};
 
 app.use(cors({
     origin: 'http://127.0.0.1:5000',
@@ -17,79 +16,51 @@ app.use(cors({
 }));
 
 async function iniciarBot(clientId) {
-    const authPath = `./sessions/${clientId}`;
+    const sessionFile = `./sessions/${clientId}.json`;
+    let sessionData;
 
-    if (!fs.existsSync(authPath)) {
-        fs.mkdirSync(authPath, { recursive: true });
+    if (fs.existsSync(sessionFile)) {
+        sessionData = require(sessionFile);
     }
 
-    if (sessions[clientId]) {
-        console.log(`⚠️ O bot para ${clientId} já está em execução.`);
-        return;
-    }
-
-    const { state, saveCreds } = await useMultiFileAuthState(authPath);
-
-    const sock = makeWASocket({
-        auth: state,
-        browser: ['Ubuntu', 'Chrome', '22.04.4'],
-        printQRInTerminal: false
+    const client = new Client({
+        session: sessionData
     });
 
-    sessions[clientId] = { sock, saveCreds };
+    sessions[clientId] = client;
 
-    sock.ev.on('creds.update', saveCreds);
-
-    sock.ev.on('connection.update', update => {
-        const { connection, lastDisconnect, qr } = update;
-
-        if (qr) {
-            console.log(`📌 QR Code gerado para ${clientId}:`);
-            if (activeQrCodes[clientId]) {
-                delete activeQrCodes[clientId];
-            }
-            qrcode.toString(qr, { type: 'terminal' }, (err, qrCodeTerminal) => {
-                if (!err) console.log(qrCodeTerminal);
-            });
-
-            activeQrCodes[clientId] = qr;
-        }
-
-        if (connection === 'open') {
-            console.clear();
-            console.log(`✅ Cliente ${clientId} conectado com sucesso!`);
-            if (activeQrCodes[clientId]) {
-                delete activeQrCodes[clientId];
-            }
-        }
-
-        if (connection === 'close') {
-            const motivo = lastDisconnect?.error?.output?.statusCode;
-            console.log(`🔴 Conexão fechada para ${clientId}. Motivo: ${motivo || 'desconhecido'}`);
-            delete sessions[clientId];
-            if (motivo !== 401) {
-                console.log(`🔄 Tentando reconectar ${clientId}...`);
-                setTimeout(() => iniciarBot(clientId), 5000);
-            } else {
-                console.log(`🚫 Autenticação inválida para ${clientId}. QR Code necessário.`);
-            }
-        }
+    client.on('qr', (qr) => {
+        console.log(`📌 QR Code gerado para ${clientId}:`);
+        qrcode.generate(qr, { small: true });
     });
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg || !msg.message || !msg.key.remoteJid) return;
+    client.on('ready', () => {
+        console.log(`✅ Cliente ${clientId} conectado com sucesso!`);
+    });
 
-        const texto = msg.message.conversation || msg.message.extendedTextMessage?.text;
-        const remetente = msg.key.remoteJid;
+    client.on('authenticated', (session) => {
+        fs.writeFileSync(sessionFile, JSON.stringify(session));
+        console.log(`🔐 Sessão salva para ${clientId}`);
+    });
+
+    client.on('auth_failure', () => {
+        console.error(`🚫 Falha na autenticação para ${clientId}. Excluindo sessão...`);
+        fs.unlinkSync(sessionFile);
+    });
+
+    client.on('message', async (message) => {
+        const texto = message.body;
+        const remetente = message.from;
 
         console.log(`📩 Mensagem recebida de ${remetente}: ${texto}`);
 
         const config = await buscarConfiguracoes(clientId);
         if (!config) return;
 
-        await regrasDeSaudacao(config, texto, remetente, sock, msg);
+        await regrasDeSaudacao(config, remetente, client);
     });
+
+    client.initialize();
 }
 
 app.get('/generate-qr/:email', async (req, res) => {
@@ -107,12 +78,7 @@ app.get('/generate-qr/:email', async (req, res) => {
             await iniciarBot(userId);
         }
 
-        if (activeQrCodes[userId]) {
-            const qrCodeBase64 = await qrcode.toDataURL(activeQrCodes[userId]);
-            res.send({ qr_code: qrCodeBase64 });
-        } else {
-            res.status(404).send({ error: "QR Code não disponível. Tente novamente em instantes." });
-        }
+        res.send({ message: "QR Code gerado e cliente iniciado!" });
     } catch (error) {
         console.error("Erro ao buscar usuário:", error);
         res.status(500).send({ error: "Erro interno do servidor." });
