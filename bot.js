@@ -10,7 +10,7 @@ const app = express();
 const sessions = {};
 
 app.use(cors({
-    origin: 'http://127.0.0.1:5000',
+    origin: 'https://sistema-whatsapp-elite.onrender.com',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
