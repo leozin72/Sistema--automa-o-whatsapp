@@ -122,7 +122,7 @@ def gerar_qr():
                 "error": "Usuário não encontrado"
             }), 400
 
-        resposta = requests.get(f"http://localhost:3000/generate-qr/{usuario.email}")
+        resposta = requests.get(f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{usuario.email}")
         dados = resposta.json()
 
         if resposta.status_code == 200:
