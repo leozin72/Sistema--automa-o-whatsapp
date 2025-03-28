@@ -139,7 +139,7 @@ def gerar_qr():
             return jsonify({"error": "Usuário não encontrado"}), 400
 
         # Faz a requisição ao serviço de geração de QR Code
-        resposta = requests.get(f"http://localhost:3000/generate-qr/{usuario.email}")
+        resposta = requests.get(f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{usuario.email}")
         if resposta.status_code == 200:
             dados = resposta.json()
             return jsonify({"qr_code": dados.get('qr_code')}), 200
