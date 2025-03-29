@@ -9,12 +9,14 @@ const { buscarIdUsuario, buscarConfiguracoes, regrasDeSaudacao } = require('./fu
 const app = express();
 const sessions = {};
 
+// Configuração de CORS
 app.use(cors({
     origin: 'https://sistema-whatsapp-elite.onrender.com',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
 
+// Função para iniciar o bot do cliente
 async function iniciarBot(clientId) {
     const sessionFile = `./sessions/${clientId}.json`;
     let sessionData;
@@ -63,13 +65,17 @@ async function iniciarBot(clientId) {
     client.initialize();
 }
 
+// Endpoint para gerar QR Code
 app.get('/generate-qr/:email', async (req, res) => {
     const email = req.params.email;
 
     try {
+        console.log(`Recebido pedido de QR Code para o email: ${email}`);
+
         const userId = await buscarIdUsuario(email);
 
         if (!userId) {
+            console.error("Usuário não encontrado no banco de dados.");
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
@@ -80,11 +86,13 @@ app.get('/generate-qr/:email', async (req, res) => {
 
         res.send({ message: "QR Code gerado e cliente iniciado!" });
     } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
+        console.error("Erro ao buscar usuário:", error.message || error);
         res.status(500).send({ error: "Erro interno do servidor." });
     }
 });
 
-app.listen(3000, () => {
-    console.log('🚀 Servidor rodando na porta 3000...');
+// Configuração para o Render: Porta dinâmica
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Servidor rodando na porta ${port}...`);
 });
