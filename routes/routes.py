@@ -134,45 +134,66 @@ def whatsapp():
 def gerar_qr():
     try:
         # Obtenha o usuário da sessão
-        usuario = Usuario.query.filter_by(id=session.get('usuario')).first()
+        user_id = session.get('usuario')
+        print("ID do usuário na sessão:", user_id)
+
+        usuario = Usuario.query.filter_by(id=user_id).first()
         if not usuario:
+            print("Erro: Usuário não encontrado na sessão.")
             return jsonify({"error": "Usuário não encontrado"}), 400
 
         # Faz a requisição ao serviço de geração de QR Code
-        resposta = requests.get(f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{usuario.email}")
+        print(f"Fazendo requisição para o serviço de QR Code com email: {usuario.email}")
+        resposta = requests.get(f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{usuario.email}", timeout=10)
+
+        print(f"Resposta do serviço de QR Code: {resposta.status_code}")
         if resposta.status_code == 200:
             dados = resposta.json()
+            print("QR Code retornado com sucesso!")
             return jsonify({"qr_code": dados.get('qr_code')}), 200
 
         # Trata erros retornados pela API de geração do QR Code
         dados = resposta.json()
+        print("Erro retornado pela API de QR Code:", dados)
         return jsonify({"error": dados.get("error", "Erro desconhecido")}), resposta.status_code
 
     except requests.exceptions.RequestException as e:
         # Captura erros relacionados à conexão com a API
+        print("Erro de conexão com o serviço de QR Code:", str(e))
         return jsonify({"error": f"Erro ao conectar ao serviço de QR Code: {str(e)}"}), 500
 
     except Exception as e:
         # Captura outros erros não previstos
+        print("Erro inesperado:", str(e))
         return jsonify({"error": f"Erro ao obter QR Code: {str(e)}"}), 500
-
+        
 @routes.route('/buscar_id/<int:id_usuario>', methods=['GET'])
 @login_required
 def buscar_id(id_usuario):
+    print("Buscando usuário com ID:", id_usuario)
+
     usuario = Usuario.query.filter_by(id=id_usuario).first()
     if usuario:
+        print("Usuário encontrado:", usuario.email)
         return jsonify({
             "message": "Usuário encontrado",
             "id": usuario.id,
             "email": usuario.email
         })
+
+    print("Erro: Usuário não encontrado.")
     return jsonify({"error": "Usuário não encontrado"}), 404
 
 @routes.route('/buscar_id_por_email/<string:email>', methods=['GET'])
 def buscar_id_por_email(email):
+    print("Buscando ID para o email:", email)
+
     usuario = Usuario.query.filter_by(email=email).first()
     if usuario:
+        print("Usuário encontrado:", usuario.id)
         return jsonify({"id": usuario.id})
+
+    print("Erro: Usuário não encontrado para o email:", email)
     return jsonify({"error": "Usuário não encontrado"}), 404
 
 @routes.route('/salvar_config', methods=['POST'])
