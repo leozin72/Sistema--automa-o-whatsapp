@@ -4,7 +4,6 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const { buscarIdUsuario, buscarConfiguracoes, regrasDeSaudacao } = require('./funcaobot');
 
 const app = express();
 const sessions = {};
@@ -56,10 +55,7 @@ async function iniciarBot(clientId) {
 
         console.log(`📩 Mensagem recebida de ${remetente}: ${texto}`);
 
-        const config = await buscarConfiguracoes(clientId);
-        if (!config) return;
-
-        await regrasDeSaudacao(config, remetente, client);
+        // Você pode adicionar a lógica para buscar configurações específicas
     });
 
     client.initialize();
@@ -72,10 +68,14 @@ app.get('/generate-qr/:email', async (req, res) => {
     try {
         console.log(`Recebido pedido de QR Code para o email: ${email}`);
 
-        const userId = await buscarIdUsuario(email);
+        // Faz uma requisição à rota do Flask para buscar o ID do usuário pelo e-mail
+        const response = await axios.get(`https://sistema-whatsapp-elite.onrender.com/buscar_id_por_email/${email}`);
+        const userId = response.data.id;
+
+        console.log(`ID retornado pelo Flask para o email ${email}: ${userId}`);
 
         if (!userId) {
-            console.error("Usuário não encontrado no banco de dados.");
+            console.error("Usuário não encontrado pelo Flask.");
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
@@ -86,7 +86,12 @@ app.get('/generate-qr/:email', async (req, res) => {
 
         res.send({ message: "QR Code gerado e cliente iniciado!" });
     } catch (error) {
-        console.error("Erro ao buscar usuário:", error.message || error);
+        if (error.response && error.response.status === 404) {
+            console.error("Usuário não encontrado na API Flask.");
+            return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
+        }
+
+        console.error("Erro ao buscar ID do usuário ou iniciar o bot:", error.message || error);
         res.status(500).send({ error: "Erro interno do servidor." });
     }
 });
