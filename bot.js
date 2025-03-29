@@ -1,5 +1,5 @@
 const { Client } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const qrcode = require('qrcode'); // Adiciona biblioteca para converter QR Code em base64
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
@@ -30,9 +30,10 @@ async function iniciarBot(clientId) {
 
     sessions[clientId] = client;
 
-    client.on('qr', (qr) => {
-        console.log(`📌 QR Code gerado para ${clientId}:`);
-        qrcode.generate(qr, { small: true });
+    client.on('qr', async (qr) => {
+        console.log(`📌 QR Code gerado para ${clientId}: ${qr}`);
+        const qrCodeImage = await qrcode.toDataURL(qr); // Gera QR Code como imagem base64
+        sessions[clientId] = { qrCodeImage }; // Salva a imagem base64 na sessão
     });
 
     client.on('ready', () => {
@@ -84,7 +85,11 @@ app.get('/generate-qr/:email', async (req, res) => {
             await iniciarBot(userId);
         }
 
-        res.send({ message: "QR Code gerado e cliente iniciado!" });
+        const qrCodeImage = sessions[userId]?.qrCodeImage; // Recupera o QR Code salvo na sessão
+        res.send({
+            message: "QR Code gerado e cliente iniciado!",
+            qr_code: qrCodeImage // Adiciona o QR Code base64 na resposta
+        });
     } catch (error) {
         if (error.response && error.response.status === 404) {
             console.error("Usuário não encontrado na API Flask.");
