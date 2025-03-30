@@ -10,9 +10,67 @@
     <div id="qr-code-display" class="qr-code-display">
         <p class="loading-message">Carregando QR Code para conexão, por favor aguarde...</p>
     </div>
+    <div class="animation-container">
+        <div class="nucleo">
+            <div class="eletron"></div>
+        </div>
+    </div>
     <div id="error-message" class="error-message"></div>
 </div>
 
+<style>
+  /* Estilo para a animação */
+  .animation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .nucleo {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #1c1c3c 30%, #000 90%); /* Fundo escuro com gradiente */
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para realçar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .eletron {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #00f, #3498db); /* Azul com efeito brilhante */
+    border-radius: 50%;
+    box-shadow: 0 0 20px #00f; /* Intensificação do brilho */
+    animation: orbitar 3s ease-in-out infinite, pulsar 1.5s ease-in-out infinite;
+  }
+
+  /* Movimento do elétron */
+  @keyframes orbitar {
+    0% {
+      transform: rotate(0deg) translateX(60px);
+    }
+    100% {
+      transform: rotate(360deg) translateX(60px);
+    }
+  }
+
+  /* Efeito de pulsar */
+  @keyframes pulsar {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.5);
+      opacity: 0.8;
+    }
+  }
+</style>
 <script>
     document.addEventListener('DOMContentLoaded', async function () {
         const qrDisplay = document.getElementById('qr-code-display');
