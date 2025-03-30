@@ -42,16 +42,19 @@ async function iniciarBot(clientId) {
         console.log(`📌 QR Code gerado para ${clientId}: ${qr}`);
         const qrCodeImage = await qrcode.toDataURL(qr); // Gera QR Code como imagem base64
         sessions[clientId].qrCodeImage = qrCodeImage; // Atualiza a sessão com o QR Code base64
+        sessions[clientId].status = "awaiting_scan"; // Atualiza o status para aguardando
         console.log("QR Code base64 salvo na sessão com sucesso!");
     });
 
     client.on('ready', () => {
         console.log(`✅ Cliente ${clientId} conectado com sucesso!`);
+        sessions[clientId].status = "connected"; // Salva o status conectado
     });
 
     client.on('authenticated', (session) => {
         fs.writeFileSync(sessionFile, JSON.stringify(session));
         console.log(`🔐 Sessão salva para ${clientId}`);
+        sessions[clientId].status = "authenticated"; // Atualiza o status
     });
 
     client.on('auth_failure', () => {
@@ -129,6 +132,10 @@ app.get('/generate-qr/:email', async (req, res) => {
                 message: "QR Code gerado e cliente iniciado!",
                 qr_code: qrCodeImage
             });
+        } else if (sessions[userId]?.status === "connected") {
+            return res.status(200).send({
+                message: "Conectado"
+            });
         } else {
             console.log("QR Code ainda não gerado. Enviando mensagem de espera.");
             return res.status(202).send({ error: "QR Code ainda não gerado. Por favor, aguarde alguns segundos." });
@@ -141,6 +148,52 @@ app.get('/generate-qr/:email', async (req, res) => {
 
         console.error("Erro ao buscar ID do usuário ou iniciar o bot:", error.message || error);
         res.status(500).send({ error: "Erro interno do servidor." });
+    }
+});
+
+// Endpoint para ativar o bot
+app.post('/ativar_bot/:email', async (req, res) => {
+    const email = req.params.email;
+
+    try {
+        const userId = await buscarIdUsuario(email);
+        if (!userId) {
+            return res.status(404).send({ error: "Usuário não encontrado." });
+        }
+
+        if (!sessions[userId]) {
+            console.log(`Ativando bot para o usuário ${email}`);
+            await iniciarBot(userId);
+        } else {
+            console.log(`Bot já ativo para o usuário ${email}`);
+        }
+
+        sessions[userId].status = "active"; // Marca o status como ativo
+        res.status(200).send({ message: "Bot ativado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao ativar bot:", error.message || error);
+        res.status(500).send({ error: "Erro ao ativar o bot." });
+    }
+});
+
+// Endpoint para desativar o bot
+app.post('/desativar_bot/:email', (req, res) => {
+    const email = req.params.email;
+
+    try {
+        const userId = Object.keys(sessions).find(id => sessions[id]?.email === email);
+        if (!userId || !sessions[userId]) {
+            return res.status(404).send({ error: "Bot não está ativo para este usuário." });
+        }
+
+        console.log(`Desativando bot para o usuário ${email}`);
+        sessions[userId].status = "inactive"; // Marca o status como inativo
+        delete sessions[userId]; // Remove a sessão da memória
+
+        res.status(200).send({ message: "Bot desativado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao desativar bot:", error.message || error);
+        res.status(500).send({ error: "Erro ao desativar o bot." });
     }
 });
 
