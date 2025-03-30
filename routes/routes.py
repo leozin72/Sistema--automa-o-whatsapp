@@ -167,10 +167,35 @@ def gerar_qr():
             else:
                 print("Erro: QR Code não encontrado na resposta da API.")
                 return render_template(
-                    'qrcode.html', 
-                    qr_code=None, 
+                    'qrcode.html',
+                    qr_code=None,
                     error_message="QR Code não retornado pelo servidor."
+                )
+        else:
+            print(f"Erro no serviço de QR Code: {resposta.status_code} {resposta.text}")
+            return render_template(
+                'qrcode.html',
+                qr_code=None,
+                error_message="Erro no serviço de QR Code."
+            )
 
+    except requests.exceptions.RequestException as e:
+        # Captura erros relacionados à conexão com a API
+        print(f"Erro ao conectar ao serviço de QR Code: {str(e)}")
+        return render_template(
+            'qrcode.html',
+            qr_code=None,
+            error_message="Erro ao conectar ao serviço de QR Code. Tente novamente mais tarde."
+        )
+
+    except Exception as e:
+        # Captura outros erros não previstos
+        print(f"Erro inesperado: {str(e)}")
+        return render_template(
+            'qrcode.html',
+            qr_code=None,
+            error_message="Ocorreu um erro inesperado. Por favor, tente novamente."
+        )
 @routes.route('/buscar_id/<int:id_usuario>', methods=['GET'])
 @login_required
 def buscar_id(id_usuario):
