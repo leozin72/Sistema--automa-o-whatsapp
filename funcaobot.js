@@ -3,7 +3,7 @@ const axios = require('axios');
 // 🔹 Função para buscar o ID do usuário pelo email
 async function buscarIdUsuario(email) {
     try {
-        const resposta = await axios.get(`http://127.0.0.1:5000/buscar_id_por_email/${email}`);
+        const resposta = await axios.get(`https://sistema-whatsapp-elite.onrender.com/buscar_id_por_email/${email}`);
         if (resposta.status === 200 && resposta.data.id) {
             return resposta.data.id;
         } else {
@@ -19,7 +19,7 @@ async function buscarIdUsuario(email) {
 // 🔹 Função para buscar configurações do cliente
 async function buscarConfiguracoes(clienteId) {
     try {
-        const resposta = await axios.get(`http://127.0.0.1:5000/buscar_configuracoes/${clienteId}`);
+        const resposta = await axios.get(`https://sistema-whatsapp-elite.onrender.com/buscar_configuracoes/${clienteId}`);
         return resposta.data;
     } catch (error) {
         console.error(`Erro ao buscar configurações do cliente ${clienteId}:`, error.response?.data || error.message);
