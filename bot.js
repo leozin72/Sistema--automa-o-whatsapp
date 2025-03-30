@@ -118,23 +118,27 @@ app.get('/generate-qr/:email', async (req, res) => {
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
-        // Inicializa o bot se necessário
+        // Verifica se já existe um QR Code na sessão
+        if (sessions[userId]?.qrCodeImage) {
+            console.log("QR Code existente retornado com sucesso!");
+            return res.status(200).send({
+                message: "QR Code gerado anteriormente.",
+                qr_code: sessions[userId].qrCodeImage
+            });
+        }
+
+        // Inicializa o bot e gera um QR Code se ainda não existir
         if (!sessions[userId]) {
             console.log(`Iniciando bot para o usuário ${email} (ID: ${userId})`);
             await iniciarBot(userId);
         }
 
-        // Verifica se o QR Code já foi gerado
         const qrCodeImage = sessions[userId]?.qrCodeImage;
         if (qrCodeImage) {
             console.log("QR Code gerado e retornado com sucesso!");
             return res.status(200).send({
                 message: "QR Code gerado e cliente iniciado!",
                 qr_code: qrCodeImage
-            });
-        } else if (sessions[userId]?.status === "connected") {
-            return res.status(200).send({
-                message: "Conectado"
             });
         } else {
             console.log("QR Code ainda não gerado. Enviando mensagem de espera.");
