@@ -7,49 +7,57 @@
 
 <div class="qr-code-container">
     <h2>QR Code</h2>
-    {% if qr_code %}
-        <p>Escaneie o QR Code abaixo para acessar sua conta ou informações:</p>
-        <img src="{{ qr_code }}" alt="QR Code gerado" class="qr-code-image">
-    {% elif error_message %}
-        <p class="error">{{ error_message }}</p>
-    {% else %}
-        <p class="error">Erro desconhecido ao carregar o QR Code. Tente novamente.</p>
-    {% endif %}
+    <div id="qr-code-display" class="qr-code-display">
+        <p class="loading-message">Carregando QR Code, por favor aguarde...</p>
+    </div>
+    <div id="error-message" class="error-message"></div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', async function () {
-    const qrDisplay = document.getElementById('qr-code-display');
-    const errorMessage = document.getElementById('error-message');
-    const loadingMessage = document.createElement('p');
+        const qrDisplay = document.getElementById('qr-code-display');
+        const errorMessage = document.getElementById('error-message');
+        const loadingMessage = document.querySelector('.loading-message');
 
-    // Adiciona uma mensagem inicial de carregamento
-    loadingMessage.id = 'loading-message';
-    loadingMessage.innerText = "Carregando QR Code, aguarde...";
-    qrDisplay.appendChild(loadingMessage); // Exibe a mensagem enquanto o QR Code é carregado
+        try {
+            let attempts = 0;
+            const maxAttempts = 15; // Número máximo de tentativas para evitar loops infinitos
+            let qrCodeLoaded = false;
 
-    try {
-        // Faz a requisição ao backend Flask para obter o QR Code
-        const response = await fetch('/gerar_qr', { method: 'GET', cache: 'no-store' }); // Garante que não utilize cache
-        if (!response.ok) throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+            while (attempts < maxAttempts && !qrCodeLoaded) {
+                const response = await fetch('/gerar_qr', { method: 'GET', cache: 'no-store' }); // Garante que não utilize cache
 
-        const data = await response.json();
+                if (response.status === 202) {
+                    // QR Code ainda não gerado, exibe mensagem de espera
+                    console.log(`Tentativa ${attempts + 1}: QR Code ainda não gerado.`);
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, 3000)); // Aguarda 3 segundos antes de tentar novamente
+                } else if (response.ok) {
+                    const data = await response.json();
+                    console.log("Dados recebidos do backend:", data);
 
-        // Verifica e exibe o QR Code caso seja retornado com sucesso
-        if (data.qr_code) {
-            qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code gerado" class="qr-code-image">`;
-        } else {
-            throw new Error("QR Code não encontrado na resposta do servidor.");
+                    if (data.qr_code) {
+                        // QR Code gerado com sucesso, exibe na página
+                        qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code gerado" class="qr-code-image">`;
+                        qrCodeLoaded = true;
+                    } else {
+                        throw new Error("QR Code não encontrado na resposta do backend.");
+                    }
+                } else {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+            }
+
+            if (!qrCodeLoaded) {
+                throw new Error("QR Code não foi gerado dentro do tempo esperado.");
+            }
+        } catch (error) {
+            console.error("Erro ao carregar o QR Code:", error.message);
+            errorMessage.innerText = "Erro ao carregar o QR Code. Por favor, tente novamente mais tarde.";
+            qrDisplay.innerHTML = ""; // Limpa o conteúdo do QR Code
+        } finally {
+            if (loadingMessage) loadingMessage.remove(); // Remove a mensagem de carregamento ao final
         }
-    } catch (error) {
-        // Exibe mensagem de erro ao usuário
-        errorMessage.innerText = "Falha ao carregar o QR Code. Por favor, tente novamente mais tarde.";
-        qrDisplay.innerHTML = ""; // Limpa o conteúdo do QR Code
-        console.error("Erro detalhado:", error.message); // Loga o erro para depuração
-    } finally {
-        // Remove a mensagem de carregamento ao final
-        if (loadingMessage) loadingMessage.remove();
-    }
-});
+    });
 </script>
 {% endblock %}
