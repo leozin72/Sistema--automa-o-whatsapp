@@ -34,6 +34,7 @@ async function iniciarBot(clientId) {
         console.log(`📌 QR Code gerado para ${clientId}: ${qr}`);
         const qrCodeImage = await qrcode.toDataURL(qr); // Gera QR Code como imagem base64
         sessions[clientId].qrCodeImage = qrCodeImage; // Atualiza a sessão com o QR Code base64
+        console.log("QR Code base64 salvo na sessão com sucesso!");
     });
 
     client.on('ready', () => {
@@ -80,23 +81,23 @@ app.get('/generate-qr/:email', async (req, res) => {
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
-        // Inicia o bot se não estiver na sessão
+        // Inicializa o bot se necessário
         if (!sessions[userId]) {
             console.log(`Iniciando bot para o usuário ${email} (ID: ${userId})`);
             await iniciarBot(userId);
         }
 
-        // Recupera o QR Code gerado na sessão
+        // Verifica se o QR Code já foi gerado
         const qrCodeImage = sessions[userId]?.qrCodeImage;
         if (qrCodeImage) {
             console.log("QR Code gerado e retornado com sucesso!");
-            res.status(200).send({
+            return res.status(200).send({
                 message: "QR Code gerado e cliente iniciado!",
                 qr_code: qrCodeImage
             });
         } else {
-            console.error("QR Code ainda não gerado.");
-            res.status(500).send({ error: "QR Code ainda não gerado. Tente novamente." });
+            console.log("QR Code ainda não gerado. Enviando mensagem de espera.");
+            return res.status(202).send({ error: "QR Code ainda não gerado. Por favor, aguarde alguns segundos." });
         }
     } catch (error) {
         if (error.response && error.response.status === 404) {
