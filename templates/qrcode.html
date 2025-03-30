@@ -5,16 +5,16 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='qr.css') }}">
 
-<div class="container qr-code-container">
+<div class="qr-code-container">
     <h2>QR Code</h2>
-    <div id="qr-code-section">
+    {% if qr_code %}
         <p>Escaneie o QR Code abaixo para acessar sua conta ou informações:</p>
-        <div id="qr-code-display">
-            <!-- Mensagem inicial -->
-            <p id="loading-message">Gerando QR Code, por favor aguarde...</p>
-        </div>
-    </div>
-    <div id="error-message" class="error"></div>
+        <img src="{{ qr_code }}" alt="QR Code gerado" class="qr-code-image">
+    {% elif error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% else %}
+        <p class="error">Erro desconhecido ao carregar o QR Code. Tente novamente.</p>
+    {% endif %}
 </div>
 
 <script>
