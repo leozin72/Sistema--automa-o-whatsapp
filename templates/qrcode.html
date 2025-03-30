@@ -10,13 +10,41 @@
     <div id="qr-code-section">
         <p>Escaneie o QR Code abaixo para acessar sua conta ou informações:</p>
         <div id="qr-code-display">
-            <!-- Exibe o QR Code gerado automaticamente -->
-            {% if qr_code %}
-                <img src="{{ qr_code }}" alt="QR Code gerado" class="qr-code-image">
-            {% else %}
-                <p class="error">Erro ao gerar o QR Code. Por favor, tente novamente mais tarde.</p>
-            {% endif %}
+            <!-- Mensagem inicial -->
+            <p id="loading-message">Gerando QR Code, por favor aguarde...</p>
         </div>
     </div>
+    <div id="error-message" class="error"></div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const qrDisplay = document.getElementById('qr-code-display');
+        const errorMessage = document.getElementById('error-message');
+        const loadingMessage = document.getElementById('loading-message');
+
+        try {
+            // Faz a requisição ao Flask para obter o QR Code
+            const response = await fetch('/gerar_qr');
+            if (!response.ok) throw new Error("Erro ao obter o QR Code");
+
+            const data = await response.json();
+
+            // Exibe o QR Code se retornado com sucesso
+            if (data.qr_code) {
+                qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code gerado" class="qr-code-image">`;
+            } else {
+                throw new Error("QR Code não encontrado na resposta.");
+            }
+        } catch (error) {
+            // Exibe mensagem de erro se algo der errado
+            errorMessage.innerText = "Erro ao carregar o QR Code. Tente novamente mais tarde.";
+            qrDisplay.innerHTML = "";
+            console.error("Detalhes do erro:", error.message);
+        } finally {
+            // Remove a mensagem de carregamento
+            if (loadingMessage) loadingMessage.remove();
+        }
+    });
+</script>
 {% endblock %}
