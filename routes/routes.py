@@ -140,7 +140,7 @@ def gerar_qr():
         usuario = Usuario.query.filter_by(id=user_id).first()
         if not usuario:
             print("Erro: Usuário não encontrado na sessão.")
-            return jsonify({"error": "Usuário não encontrado"}), 400
+            return render_template('qr_code.html', qr_code=None)
 
         # Faz a requisição ao serviço de geração de QR Code
         print(f"Fazendo requisição para o serviço de QR Code com email: {usuario.email}")
@@ -150,23 +150,23 @@ def gerar_qr():
         if resposta.status_code == 200:
             dados = resposta.json()
             print("QR Code retornado com sucesso!")
-            return jsonify({"qr_code": dados.get('qr_code')}), 200
+            return render_template('qr_code.html', qr_code=dados.get('qr_code'))
 
         # Trata erros retornados pela API de geração do QR Code
         dados = resposta.json()
         print("Erro retornado pela API de QR Code:", dados)
-        return jsonify({"error": dados.get("error", "Erro desconhecido")}), resposta.status_code
+        return render_template('qr_code.html', qr_code=None)
 
     except requests.exceptions.RequestException as e:
         # Captura erros relacionados à conexão com a API
         print("Erro de conexão com o serviço de QR Code:", str(e))
-        return jsonify({"error": f"Erro ao conectar ao serviço de QR Code: {str(e)}"}), 500
+        return render_template('qr_code.html', qr_code=None)
 
     except Exception as e:
         # Captura outros erros não previstos
         print("Erro inesperado:", str(e))
-        return jsonify({"error": f"Erro ao obter QR Code: {str(e)}"}), 500
-        
+        return render_template('qr_code.html', qr_code=None)        
+
 @routes.route('/buscar_id/<int:id_usuario>', methods=['GET'])
 @login_required
 def buscar_id(id_usuario):
