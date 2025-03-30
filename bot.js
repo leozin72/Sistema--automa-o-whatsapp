@@ -1,5 +1,5 @@
 const { Client } = require('whatsapp-web.js');
-const qrcode = require('qrcode'); // Adiciona biblioteca para converter QR Code em base64
+const qrcode = require('qrcode'); // Biblioteca para converter QR Code em base64
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
@@ -33,7 +33,7 @@ async function iniciarBot(clientId) {
     client.on('qr', async (qr) => {
         console.log(`📌 QR Code gerado para ${clientId}: ${qr}`);
         const qrCodeImage = await qrcode.toDataURL(qr); // Gera QR Code como imagem base64
-        sessions[clientId] = { qrCodeImage }; // Salva a imagem base64 na sessão
+        sessions[clientId].qrCodeImage = qrCodeImage; // Atualiza a sessão com o QR Code base64
     });
 
     client.on('ready', () => {
@@ -48,6 +48,7 @@ async function iniciarBot(clientId) {
     client.on('auth_failure', () => {
         console.error(`🚫 Falha na autenticação para ${clientId}. Excluindo sessão...`);
         fs.unlinkSync(sessionFile);
+        delete sessions[clientId];
     });
 
     client.on('message', async (message) => {
@@ -55,8 +56,7 @@ async function iniciarBot(clientId) {
         const remetente = message.from;
 
         console.log(`📩 Mensagem recebida de ${remetente}: ${texto}`);
-
-        // Você pode adicionar a lógica para buscar configurações específicas
+        // Adicione aqui qualquer lógica específica para mensagens
     });
 
     client.initialize();
@@ -80,16 +80,24 @@ app.get('/generate-qr/:email', async (req, res) => {
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
+        // Inicia o bot se não estiver na sessão
         if (!sessions[userId]) {
             console.log(`Iniciando bot para o usuário ${email} (ID: ${userId})`);
             await iniciarBot(userId);
         }
 
-        const qrCodeImage = sessions[userId]?.qrCodeImage; // Recupera o QR Code salvo na sessão
-        res.send({
-            message: "QR Code gerado e cliente iniciado!",
-            qr_code: qrCodeImage // Adiciona o QR Code base64 na resposta
-        });
+        // Recupera o QR Code gerado na sessão
+        const qrCodeImage = sessions[userId]?.qrCodeImage;
+        if (qrCodeImage) {
+            console.log("QR Code gerado e retornado com sucesso!");
+            res.status(200).send({
+                message: "QR Code gerado e cliente iniciado!",
+                qr_code: qrCodeImage
+            });
+        } else {
+            console.error("QR Code ainda não gerado.");
+            res.status(500).send({ error: "QR Code ainda não gerado. Tente novamente." });
+        }
     } catch (error) {
         if (error.response && error.response.status === 404) {
             console.error("Usuário não encontrado na API Flask.");
