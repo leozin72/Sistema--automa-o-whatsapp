@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}QR Code{% endblock %}
+{% block title %}Conectar Dispositivo{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='qr.css') }}">
 
 <div class="qr-code-container">
-    <h2>QR Code</h2>
+    <h2>Conectar Dispositivo</h2>
     <div id="qr-code-display" class="qr-code-display">
-        <p class="loading-message">Carregando QR Code, por favor aguarde...</p>
+        <p class="loading-message">Carregando QR Code para conexão, por favor aguarde...</p>
     </div>
     <div id="error-message" class="error-message"></div>
 </div>
@@ -21,14 +21,13 @@
 
         try {
             let attempts = 0;
-            const maxAttempts = 15; // Número máximo de tentativas para evitar loops infinitos
-            let qrCodeLoaded = false;
+            const maxAttempts = 50; // Aumenta número de tentativas para garantir carregamento
+            let isConnected = false;
 
-            while (attempts < maxAttempts && !qrCodeLoaded) {
+            while (attempts < maxAttempts && !isConnected) {
                 const response = await fetch('/gerar_qr', { method: 'GET', cache: 'no-store' }); // Garante que não utilize cache
 
                 if (response.status === 202) {
-                    // QR Code ainda não gerado, exibe mensagem de espera
                     console.log(`Tentativa ${attempts + 1}: QR Code ainda não gerado.`);
                     attempts++;
                     await new Promise(resolve => setTimeout(resolve, 3000)); // Aguarda 3 segundos antes de tentar novamente
@@ -37,18 +36,21 @@
                     console.log("Dados recebidos do backend:", data);
 
                     if (data.qr_code) {
-                        // QR Code gerado com sucesso, exibe na página
-                        qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code gerado" class="qr-code-image">`;
-                        qrCodeLoaded = true;
+                        // Exibe o QR Code na página
+                        qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code para conexão" class="qr-code-image">`;
+                    } else if (data.message === "Conectado") {
+                        // Exibe mensagem de sucesso na conexão
+                        qrDisplay.innerHTML = `<p class="success-message">Seu WhatsApp está conectado com sucesso!</p>`;
+                        isConnected = true;
                     } else {
-                        throw new Error("QR Code não encontrado na resposta do backend.");
+                        throw new Error("QR Code ou estado de conexão não encontrado na resposta do backend.");
                     }
                 } else {
                     throw new Error(`Erro HTTP: ${response.status}`);
                 }
             }
 
-            if (!qrCodeLoaded) {
+            if (!isConnected && attempts === maxAttempts) {
                 throw new Error("QR Code não foi gerado dentro do tempo esperado.");
             }
         } catch (error) {
