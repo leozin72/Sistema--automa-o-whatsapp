@@ -4,6 +4,14 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const { 
+    buscarIdUsuario, 
+    buscarConfiguracoes, 
+    validarFluxo, 
+    executarFluxo, 
+    regrasDeSaudacao, 
+    mensagensAcompanhamento 
+} = require('./funcaobot'); // Importação correta do funcaobot.js
 
 const app = express();
 const sessions = {};
@@ -53,11 +61,37 @@ async function iniciarBot(clientId) {
     });
 
     client.on('message', async (message) => {
-        const texto = message.body;
-        const remetente = message.from;
+        try {
+            const texto = message.body; // Conteúdo da mensagem
+            const remetente = message.from; // Número do remetente
 
-        console.log(`📩 Mensagem recebida de ${remetente}: ${texto}`);
-        // Adicione aqui qualquer lógica específica para mensagens
+            console.log(`📩 Mensagem recebida de ${remetente}: ${texto}`);
+
+            // Buscando o ID do usuário pelo email associado
+            const email = 'importedeelite02@gmail.com'; // Atualizar com o email do remetente
+            const userId = await buscarIdUsuario(email);
+            if (!userId) {
+                console.error("ID do usuário não encontrado.");
+                return;
+            }
+
+            // Buscando configurações do cliente
+            const config = await buscarConfiguracoes(userId);
+            if (!config) {
+                console.error("Configurações do cliente não encontradas.");
+                return;
+            }
+
+            // Verificando regras de saudação
+            await regrasDeSaudacao(config, remetente, client);
+
+            // Mensagens de acompanhamento (exemplo)
+            const ultimaInteracao = new Date(); // Substitua pela lógica que salva a última interação
+            await mensagensAcompanhamento(client, config, remetente, ultimaInteracao);
+
+        } catch (error) {
+            console.error("Erro no evento de mensagem:", error.message);
+        }
     });
 
     client.initialize();
