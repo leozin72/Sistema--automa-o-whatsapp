@@ -150,7 +150,7 @@ def gerar_qr():
         if resposta.status_code == 200:
             dados = resposta.json()
             print("QR Code retornado com sucesso!")
-            return render_template('qr_code.html', qr_code=dados.get('qr_code'))
+            return render_template('qrcode.html', qr_code=dados.get('qr_code'))
 
         # Trata erros retornados pela API de geração do QR Code
         dados = resposta.json()
