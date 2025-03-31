@@ -7,117 +7,77 @@
 
 <div class="qr-code-container">
     <h2>Conectar Dispositivo</h2>
-    <div id="qr-code-display" class="qr-code-display">
-        <p class="loading-message">Carregando QR Code para conexão, por favor aguarde...</p>
-    </div>
-    <div class="animation-container">
-        <div class="nucleo">
-            <div class="eletron"></div>
-        </div>
-    </div>
+    <div id="qr-code-display"></div>
+    <div id="status-message" class="hidden"></div>
     <div id="error-message" class="error-message"></div>
 </div>
 
 <style>
-  /* Estilo para a animação */
-  .animation-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
+  /* Estilo adicional para mensagens e botões */
+  .hidden {
+    display: none; /* Esconde elementos */
   }
 
-  .nucleo {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, #1c1c3c 30%, #000 90%); /* Fundo escuro com gradiente */
-    border-radius: 50%;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra para realçar */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  #status-message {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: green; /* Destaca mensagens de sucesso */
   }
 
-  .eletron {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: radial-gradient(circle, #00f, #3498db); /* Azul com efeito brilhante */
-    border-radius: 50%;
-    box-shadow: 0 0 20px #00f; /* Intensificação do brilho */
-    animation: orbitar 3s ease-in-out infinite, pulsar 1.5s ease-in-out infinite;
-  }
-
-  /* Movimento do elétron */
-  @keyframes orbitar {
-    0% {
-      transform: rotate(0deg) translateX(60px);
-    }
-    100% {
-      transform: rotate(360deg) translateX(60px);
-    }
-  }
-
-  /* Efeito de pulsar */
-  @keyframes pulsar {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.5);
-      opacity: 0.8;
-    }
+  .error-message {
+    color: red;
+    font-size: 16px;
+    margin-top: 10px;
   }
 </style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', async function () {
-        const qrDisplay = document.getElementById('qr-code-display');
-        const errorMessage = document.getElementById('error-message');
-        const loadingMessage = document.querySelector('.loading-message');
+  document.addEventListener('DOMContentLoaded', async function () {
+      const qrDisplay = document.getElementById('qr-code-display');
+      const statusMessage = document.getElementById('status-message');
+      const errorMessage = document.getElementById('error-message');
 
-        try {
-            let attempts = 0;
-            const maxAttempts = 50; // Aumenta número de tentativas para garantir carregamento
-            let isConnected = false;
+      try {
+          let attempts = 0;
+          const maxAttempts = 50; // Aumenta número de tentativas para garantir carregamento
+          let isConnected = false;
 
-            while (attempts < maxAttempts && !isConnected) {
-                const response = await fetch('/gerar_qr', { method: 'GET', cache: 'no-store' }); // Garante que não utilize cache
+          while (attempts < maxAttempts && !isConnected) {
+              const response = await fetch('/gerar_qr', { method: 'GET', cache: 'no-store' });
 
-                if (response.status === 202) {
-                    console.log(`Tentativa ${attempts + 1}: QR Code ainda não gerado.`);
-                    attempts++;
-                    await new Promise(resolve => setTimeout(resolve, 3000)); // Aguarda 3 segundos antes de tentar novamente
-                } else if (response.ok) {
-                    const data = await response.json();
-                    console.log("Dados recebidos do backend:", data);
+              if (response.status === 202) {
+                  console.log(`Tentativa ${attempts + 1}: QR Code ainda não gerado.`);
+                  attempts++;
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+              } else if (response.ok) {
+                  const data = await response.json();
+                  console.log("Dados recebidos do backend:", data);
 
-                    if (data.qr_code) {
-                        // Exibe o QR Code na página
-                        qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code para conexão" class="qr-code-image">`;
-                    } else if (data.message === "Conectado") {
-                        // Exibe mensagem de sucesso na conexão
-                        qrDisplay.innerHTML = `<p class="success-message">Seu WhatsApp está conectado com sucesso!</p>`;
-                        isConnected = true;
-                    } else {
-                        throw new Error("QR Code ou estado de conexão não encontrado na resposta do backend.");
-                    }
-                } else {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-            }
+                  if (data.qr_code) {
+                      qrDisplay.innerHTML = `<img src="${data.qr_code}" alt="QR Code para conexão" class="qr-code-image">`;
+                      statusMessage.classList.add("hidden");
+                  } else if (data.message === "Cliente conectado") {
+                      statusMessage.textContent = "Seu WhatsApp está conectado com sucesso!";
+                      statusMessage.classList.remove("hidden");
+                      qrDisplay.classList.add("hidden");
+                      isConnected = true;
+                  } else {
+                      throw new Error("QR Code ou estado de conexão não encontrado na resposta do backend.");
+                  }
+              } else {
+                  throw new Error(`Erro HTTP: ${response.status}`);
+              }
+          }
 
-            if (!isConnected && attempts === maxAttempts) {
-                throw new Error("QR Code não foi gerado dentro do tempo esperado.");
-            }
-        } catch (error) {
-            console.error("Erro ao carregar o QR Code:", error.message);
-            errorMessage.innerText = "Erro ao carregar o QR Code. Por favor, tente novamente mais tarde.";
-            qrDisplay.innerHTML = ""; // Limpa o conteúdo do QR Code
-        } finally {
-            if (loadingMessage) loadingMessage.remove(); // Remove a mensagem de carregamento ao final
-        }
-    });
+          if (!isConnected && attempts === maxAttempts) {
+              throw new Error("QR Code não foi gerado dentro do tempo esperado.");
+          }
+      } catch (error) {
+          console.error("Erro ao carregar o QR Code:", error.message);
+          errorMessage.innerText = "Erro ao carregar o QR Code. Por favor, tente novamente mais tarde.";
+          qrDisplay.innerHTML = ""; // Limpa o conteúdo do QR Code
+      }
+  });
 </script>
 {% endblock %}
