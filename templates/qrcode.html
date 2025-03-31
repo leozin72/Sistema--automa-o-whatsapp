@@ -9,7 +9,7 @@
     <h2>Conectar Dispositivo</h2>
     <div id="qr-code-display">
         <p>Escaneie o QR Code abaixo para conectar seu dispositivo ao sistema:</p>
-        <img id="qr-code-image" src="" alt="QR Code Global" class="qr-code-image">
+        <img id="qr-code-image" src="" alt="QR Code do Usuário" class="qr-code-image">
     </div>
     <div id="status-message" class="hidden"></div>
     <div id="error-message" class="error-message hidden"></div>
@@ -53,9 +53,12 @@
       const statusMessage = document.getElementById('status-message');
       const errorMessage = document.getElementById('error-message');
 
+      // Adiciona o email do usuário autenticado
+      const userEmail = "{{ session.usuario_email }}"; // Certifique-se de que essa variável está disponível no Flask
+
       try {
-          // Chama o endpoint para buscar o QR Code global
-          const response = await fetch('https://sistema-automa-o-whatsapp.onrender.com/generate-qr/:email:', { method: 'GET', cache: 'no-store' });
+          // Chama o endpoint para buscar o QR Code exclusivo do usuário
+          const response = await fetch(`/gerar_qr/${userEmail}`, { method: 'GET', cache: 'no-store' });
 
           if (response.ok) {
               const data = await response.json();
