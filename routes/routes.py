@@ -132,34 +132,17 @@ def whatsapp():
         return render_template('whatsapp.html', mensagens=[], time=int(time.time()))
 
 @routes.route('/gerar_qr/<email>', methods=['GET'])
-@login_required
-def gerar_qr():
+def gerar_qr(email):  # A função agora aceita o argumento 'email'
     try:
-        # Obtenha o usuário da sessão
-        user_id = session.get('usuario')
-        if not user_id:
-            print("Erro: Nenhum ID de usuário encontrado na sessão.")
-            return jsonify({"error_message": "Usuário não autenticado."}), 401
+        print(f"Gerando QR Code para o usuário: {email}")
 
-        print("ID do usuário na sessão:", user_id)
-
-        # Busca o usuário no banco de dados
-        usuario = Usuario.query.filter_by(id=user_id).first()
-        if not usuario:
-            print("Erro: Usuário não encontrado no banco de dados.")
-            return jsonify({"error_message": "Usuário não encontrado."}), 404
-
-        print(f"Usuário encontrado: {usuario.email}")
-
-        # Faz a requisição ao serviço de QR Code
-        print(f"Fazendo requisição para o serviço de QR Code com email: {usuario.email}")
+        # Faz a requisição ao Node.js para o QR Code exclusivo
         resposta = requests.get(
-            f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{usuario.email}",
+            f"https://sistema-automa-o-whatsapp.onrender.com/generate-qr/{email}",
             timeout=10
         )
 
-        # Valida a resposta da API de geração de QR Code
-        print(f"Resposta do serviço de QR Code: {resposta.status_code}")
+        # Valida a resposta
         if resposta.status_code == 200:
             dados = resposta.json()
             qr_code = dados.get('qr_code')
@@ -170,8 +153,8 @@ def gerar_qr():
                 print("QR Code ainda não gerado.")
                 return jsonify({"error_message": "QR Code ainda não gerado. Por favor, aguarde."}), 202
         else:
-            print(f"Erro no serviço de QR Code: {resposta.status_code} {resposta.text}")
-            return jsonify({"error_message": "Erro no serviço de QR Code."}), resposta.status_code
+            print(f"Erro ao gerar QR Code: {resposta.status_code} {resposta.text}")
+            return jsonify({"error_message": "Erro ao gerar QR Code."}), resposta.status_code
 
     except requests.exceptions.RequestException as e:
         print(f"Erro ao conectar ao serviço de QR Code: {str(e)}")
@@ -180,7 +163,7 @@ def gerar_qr():
     except Exception as e:
         print(f"Erro inesperado: {str(e)}")
         return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
-
+        
 @routes.route('/status/<email>', methods=['GET'])
 def status(email):
     try:
