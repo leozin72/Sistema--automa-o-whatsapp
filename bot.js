@@ -4,59 +4,49 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const {
-    buscarIdUsuario,
-    buscarConfiguracoes,
-    validarFluxo,
-    executarFluxo,
-    regrasDeSaudacao,
-    mensagensAcompanhamento
-} = require('./funcaobot');
 
 const app = express();
 const sessions = {};
 
 // Configuração de CORS
 app.use(cors({
-    origin: 'https://sistema-whatsapp-elite.onrender.com',
+    origin: '*',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
 
-// Middleware para parsing de JSON
+// Middleware para JSON
 app.use(express.json());
 
-// Gerar QR Code fixo para o bot
-let qrCodeGlobal = null; // QR Code único do sistema
+// Gerar QR Code global
+let qrCodeGlobal = null;
 async function gerarQRCodeGlobal() {
     const client = new Client();
 
     client.on('qr', async (qr) => {
-        if (!qrCodeGlobal) {
-            qrCodeGlobal = await qrcode.toDataURL(qr); // Armazena QR Code global
-            console.log("QR Code global gerado com sucesso!");
-        }
+        qrCodeGlobal = await qrcode.toDataURL(qr);
+        console.log("QR Code global gerado com sucesso!");
     });
 
     client.on('ready', async () => {
-        console.log("✅ Bot central conectado com sucesso!");
+        console.log("✅ Bot conectado e pronto para uso!");
 
-        // Detecta automaticamente o número de WhatsApp ao conectar
         const info = client.info;
         const numeroWhatsApp = info.wid.user;
         console.log("Número do WhatsApp conectado:", numeroWhatsApp);
 
-        // Envia os dados para o Flask
-        const clienteId = 'global'; // ID global para todos os usuários
+        // Enviar dados ao Flask
+        const clienteId = 'global';
         await enviarDadosParaFlask(clienteId, numeroWhatsApp);
     });
 
     client.on('authenticated', (session) => {
-        console.log("Bot autenticado com sucesso!");
+        console.log("🔐 Sessão autenticada com sucesso!");
+        fs.writeFileSync('./session.json', JSON.stringify(session));
     });
 
-    client.on('auth_failure', () => {
-        console.error("🚫 Falha na autenticação do bot.");
+    client.on('auth_failure', (message) => {
+        console.error(`🚫 Falha na autenticação: ${message}`);
     });
 
     client.initialize();
@@ -76,41 +66,7 @@ async function enviarDadosParaFlask(clienteId, numeroWhatsApp) {
     }
 }
 
-// Função para iniciar conexão de um cliente
-async function iniciarConexaoCliente(clienteId) {
-    const sessionFile = `./sessions/${clienteId}.json`;
-    let sessionData;
-
-    if (fs.existsSync(sessionFile)) {
-        sessionData = require(sessionFile);
-    }
-
-    const client = new Client({ session: sessionData });
-    sessions[clienteId] = client;
-
-    client.on('ready', () => {
-        console.log(`✅ Cliente ${clienteId} conectado com sucesso!`);
-        sessions[clienteId].status = "connected";
-    });
-
-    client.on('authenticated', (session) => {
-        fs.writeFileSync(sessionFile, JSON.stringify(session));
-        console.log(`🔐 Sessão salva para cliente ${clienteId}`);
-        sessions[clienteId].status = "authenticated";
-    });
-
-    client.on('auth_failure', () => {
-        console.error(`🚫 Falha na autenticação para cliente ${clienteId}`);
-        if (fs.existsSync(sessionFile)) {
-            fs.unlinkSync(sessionFile);
-        }
-        delete sessions[clienteId];
-    });
-
-    client.initialize();
-}
-
-// Endpoint para retornar QR Code fixo
+// Endpoint para retornar QR Code global
 app.get('/generate-qr', async (req, res) => {
     try {
         if (qrCodeGlobal) {
@@ -124,25 +80,6 @@ app.get('/generate-qr', async (req, res) => {
     } catch (error) {
         console.error("Erro ao retornar QR Code fixo:", error.message);
         res.status(500).send({ error: "Erro interno do servidor." });
-    }
-});
-
-// Endpoint para desativar conexão de um cliente
-app.post('/disconnect-client/:email', async (req, res) => {
-    const email = req.params.email;
-
-    try {
-        const userId = Object.keys(sessions).find(id => sessions[id]?.email === email);
-        if (!userId || !sessions[userId]) {
-            return res.status(404).send({ error: "Cliente não está conectado." });
-        }
-
-        console.log(`Desconectando cliente ${email}`);
-        delete sessions[userId];
-        res.status(200).send({ message: "Cliente desconectado com sucesso!" });
-    } catch (error) {
-        console.error("Erro ao desconectar cliente:", error.message);
-        res.status(500).send({ error: "Erro ao desconectar cliente." });
     }
 });
 
