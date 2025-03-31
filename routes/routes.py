@@ -196,6 +196,26 @@ def status(email):
             return jsonify({"error_message": "Erro ao consultar status do bot."}), resposta.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({"error_message": "Erro ao conectar ao serviço do bot."}), 500
+
+@routes.route('/salvar-numero', methods=['POST'])
+def salvar_numero():
+    try:
+        data = request.get_json()
+        cliente_id = data.get('cliente_id')
+        numero_whatsapp = data.get('numero_whatsapp')
+
+        if not cliente_id or not numero_whatsapp:
+            return jsonify({"error_message": "Dados incompletos."}), 400
+
+        conexao = Conexoes(cliente_id=cliente_id, numero_whatsapp=numero_whatsapp, status='conectado')
+        db.session.add(conexao)
+        db.session.commit()
+
+        return jsonify({"message": "Número salvo com sucesso!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao salvar número: {e}")
+        return jsonify({"error_message": "Erro ao salvar número no banco de dados."}), 500
         
 @routes.route('/salvar_config', methods=['POST'])
 @login_required
