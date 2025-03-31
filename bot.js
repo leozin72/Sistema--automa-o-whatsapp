@@ -38,13 +38,43 @@ async function gerarQRCodeGlobal() {
         }
     });
 
-    client.on('ready', () => {
+    client.on('ready', async () => {
         console.log("✅ Bot central conectado com sucesso!");
+
+        // Detecta automaticamente o número de WhatsApp ao conectar
+        const info = client.info;
+        const numeroWhatsApp = info.wid.user;
+        console.log("Número do WhatsApp conectado:", numeroWhatsApp);
+
+        // Envia os dados para o Flask
+        const clienteId = 'global'; // ID global para todos os usuários
+        await enviarDadosParaFlask(clienteId, numeroWhatsApp);
+    });
+
+    client.on('authenticated', (session) => {
+        console.log("Bot autenticado com sucesso!");
+    });
+
+    client.on('auth_failure', () => {
+        console.error("🚫 Falha na autenticação do bot.");
     });
 
     client.initialize();
 }
 gerarQRCodeGlobal();
+
+// Função para enviar dados ao Flask
+async function enviarDadosParaFlask(clienteId, numeroWhatsApp) {
+    try {
+        const response = await axios.post('http://127.0.0.1:5000/salvar-numero', {
+            cliente_id: clienteId,
+            numero_whatsapp: numeroWhatsApp
+        });
+        console.log("Dados enviados ao Flask com sucesso:", response.data);
+    } catch (error) {
+        console.error("Erro ao enviar dados para o Flask:", error.message);
+    }
+}
 
 // Função para iniciar conexão de um cliente
 async function iniciarConexaoCliente(clienteId) {
@@ -79,39 +109,6 @@ async function iniciarConexaoCliente(clienteId) {
 
     client.initialize();
 }
-
-// Endpoint para validar número de telefone e conectar cliente
-app.post('/connect-client/:email', async (req, res) => {
-    const email = req.params.email;
-    const { phone } = req.body; // Captura o número de telefone enviado no JSON
-
-    if (!phone) {
-        return res.status(400).send({ error: "Número de telefone é obrigatório." });
-    }
-
-    try {
-        const userId = await buscarIdUsuario(email);
-        if (!userId) {
-            return res.status(404).send({ error: "Usuário não encontrado." });
-        }
-
-        // Registra o número no banco de dados
-        await pool.query(
-            "INSERT INTO conexoes (id_usuario, numero_whatsapp, status) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-            [userId, phone, 'desconectado']
-        );
-
-        if (!sessions[userId]) {
-            console.log(`Iniciando conexão para cliente ${email}`);
-            await iniciarConexaoCliente(userId);
-        }
-
-        res.status(200).send({ message: "Número validado e cliente conectado com sucesso!" });
-    } catch (error) {
-        console.error("Erro ao conectar cliente:", error.message);
-        res.status(500).send({ error: "Erro interno do servidor." });
-    }
-});
 
 // Endpoint para retornar QR Code fixo
 app.get('/generate-qr', async (req, res) => {
