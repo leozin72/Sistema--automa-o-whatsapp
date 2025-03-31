@@ -13,11 +13,11 @@ const {
     executarFluxo,
     regrasDeSaudacao,
     mensagensAcompanhamento
-} = require('./funcaobot'); // Certifique-se de que o arquivo está na mesma pasta
+} = require('./funcaobot');
 
 const app = express();
-let qrCodeGlobal = null; // QR Code global
-let botStatus = "disconnected"; // Status do bot
+let clients = {}; // Armazena clientes por usuário
+let qrCodes = {}; // Armazena QR Codes por usuário
 
 // Configuração de CORS
 app.use(cors({
@@ -29,71 +29,68 @@ app.use(cors({
 // Middleware para JSON
 app.use(express.json());
 
-// Inicializar o cliente do WhatsApp
-const client = new Client();
+// Inicializar um cliente do WhatsApp por usuário
+function criarCliente(email) {
+    if (!clients[email]) {
+        const client = new Client();
+        clients[email] = client;
 
-// Evento: QR Code gerado
-client.on('qr', async (qr) => {
-    qrCodeGlobal = await qrcode.toDataURL(qr);
-    console.log("📸 QR Code global gerado com sucesso!");
-    botStatus = "waiting_for_scan"; // Atualiza o status
-});
+        client.on('qr', async (qr) => {
+            qrCodes[email] = await qrcode.toDataURL(qr);
+            console.log(`📸 QR Code gerado para o usuário: ${email}`);
+        });
 
-// Evento: Sessão autenticada
-client.on('authenticated', (session) => {
-    console.log("🔐 Sessão autenticada com sucesso!");
-    fs.writeFileSync('./session.json', JSON.stringify(session));
-});
+        client.on('authenticated', (session) => {
+            console.log(`🔐 Sessão autenticada para o usuário: ${email}`);
+            fs.writeFileSync(`./sessions/${email}.json`, JSON.stringify(session));
+        });
 
-// Evento: Bot conectado
-client.on('ready', async () => {
-    console.log("✅ Bot conectado ao WhatsApp e pronto para uso!");
-    botStatus = "connected"; // Atualiza o status
+        client.on('ready', async () => {
+            console.log(`✅ Bot conectado para o usuário: ${email}`);
 
-    try {
-        const numeroWhatsApp = client.info.wid.user;
-        console.log("Número do WhatsApp conectado:", numeroWhatsApp);
+            try {
+                const numeroWhatsApp = client.info.wid.user;
+                console.log(`Número do WhatsApp conectado: ${numeroWhatsApp}`);
 
-        // Buscar configurações do cliente usando as funções do bot
-        const clienteId = 'global'; // Atualize isso se for por usuário
-        const config = await buscarConfiguracoes(clienteId);
+                // Buscar configurações do cliente
+                const clienteId = await buscarIdUsuario(email);
+                const config = await buscarConfiguracoes(clienteId);
 
-        if (config) {
-            console.log("Configurações do cliente carregadas:", config);
+                if (config) {
+                    console.log("Configurações do cliente carregadas:", config);
 
-            // Regras de saudação
-            await regrasDeSaudacao(config, numeroWhatsApp, client);
-        } else {
-            console.error("⚠️ Configurações do cliente não encontradas.");
-        }
+                    // Regras de saudação
+                    await regrasDeSaudacao(config, numeroWhatsApp, client);
+                } else {
+                    console.error("⚠️ Configurações do cliente não encontradas.");
+                }
 
-        // Enviar dados ao Flask
-        await enviarDadosParaFlask(clienteId, numeroWhatsApp);
-        console.log("✅ Dados enviados ao Flask com sucesso!");
-    } catch (error) {
-        console.error("❌ Erro ao capturar número ou enviar dados:", error.message);
+                // Enviar dados ao Flask
+                await enviarDadosParaFlask(clienteId, numeroWhatsApp);
+                console.log("✅ Dados enviados ao Flask com sucesso!");
+            } catch (error) {
+                console.error("❌ Erro ao capturar número ou enviar dados:", error.message);
+            }
+        });
+
+        client.on('auth_failure', (message) => {
+            console.error(`🚨 Falha na autenticação para o usuário ${email}: ${message}`);
+        });
+
+        client.on('disconnected', (reason) => {
+            console.error(`⚠️ Bot desconectado para o usuário ${email}. Motivo: ${reason}`);
+            delete clients[email];
+            delete qrCodes[email];
+        });
+
+        client.initialize();
     }
-});
-
-// Evento: Falha na autenticação
-client.on('auth_failure', (message) => {
-    console.error(`🚨 Falha na autenticação: ${message}`);
-    botStatus = "auth_failure"; // Atualiza o status
-});
-
-// Evento: Bot desconectado
-client.on('disconnected', (reason) => {
-    console.error(`⚠️ Bot desconectado. Motivo: ${reason}`);
-    botStatus = "disconnected"; // Atualiza o status
-});
-
-// Inicializar o bot
-client.initialize();
+}
 
 // Função para enviar dados ao Flask
 async function enviarDadosParaFlask(clienteId, numeroWhatsApp) {
     try {
-        const response = await axios.post('https://sistema-whatsapp-elite.onrender.com/salvar-numero', {
+        const response = await axios.post('http://127.0.0.1:5000/salvar-numero', {
             cliente_id: clienteId,
             numero_whatsapp: numeroWhatsApp
         });
@@ -103,21 +100,21 @@ async function enviarDadosParaFlask(clienteId, numeroWhatsApp) {
     }
 }
 
-// Endpoint: Retornar QR Code global
-app.get('/generate-qr', (req, res) => {
-    if (qrCodeGlobal) {
+// Endpoint: Gerar QR Code para cada usuário
+app.get('/generate-qr/:email', (req, res) => {
+    const email = req.params.email;
+
+    // Criar cliente se não existir
+    criarCliente(email);
+
+    if (qrCodes[email]) {
         return res.status(200).send({
-            message: "QR Code fixo do sistema.",
-            qr_code: qrCodeGlobal
+            message: `QR Code gerado para o usuário ${email}`,
+            qr_code: qrCodes[email]
         });
     } else {
         return res.status(202).send({ message: "QR Code ainda não gerado. Por favor, aguarde." });
     }
-});
-
-// Endpoint: Verificar status do bot
-app.get('/bot-status', (req, res) => {
-    return res.status(200).send({ status: botStatus });
 });
 
 // Configuração do servidor
