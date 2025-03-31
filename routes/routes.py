@@ -178,7 +178,7 @@ def gerar_qr():
     except Exception as e:
         print(f"Erro inesperado: {str(e)}")
         return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
-
+        
 @routes.route('/buscar_id_por_email/<string:email>', methods=['GET'])
 def buscar_id_por_email(email):
     print("Buscando ID para o email:", email)
