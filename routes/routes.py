@@ -178,6 +178,38 @@ def gerar_qr():
     except Exception as e:
         print(f"Erro inesperado: {str(e)}")
         return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
+
+@routes.route('/connect-client', methods=['POST'])
+def connect_client():
+    try:
+        # Obtém os dados enviados pelo frontend
+        data = request.get_json()
+        email = data.get('email')
+        phone = data.get('phone')
+
+        # Valida se os campos obrigatórios estão preenchidos
+        if not email or not phone:
+            return jsonify({"error_message": "Email e número de telefone são obrigatórios."}), 400
+
+        # Faz a chamada ao serviço Node.js
+        node_endpoint = f"https://sistema-automa-o-whatsapp.onrender.com/connect-client/{email}"
+        response = requests.post(node_endpoint, json={"phone": phone}, timeout=10)
+
+        # Lida com a resposta do serviço Node.js
+        if response.status_code == 200:
+            return jsonify({"message": "Número validado e cliente conectado com sucesso!"}), 200
+        elif response.status_code == 404:
+            return jsonify({"error_message": "Usuário não encontrado."}), 404
+        else:
+            return jsonify({"error_message": "Erro ao conectar cliente. Tente novamente mais tarde."}), response.status_code
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao conectar ao serviço Node.js: {str(e)}")
+        return jsonify({"error_message": "Erro ao conectar ao serviço Node.js. Tente novamente mais tarde."}), 500
+
+    except Exception as e:
+        print(f"Erro inesperado: {str(e)}")
+        return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
         
 @routes.route('/buscar_id_por_email/<string:email>', methods=['GET'])
 def buscar_id_por_email(email):
