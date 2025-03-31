@@ -67,12 +67,12 @@
               if (!email) return;
 
               // Valida telefone e obtém QR Code
-              const response = await fetch(`/connect-client/${email}`, {
+              const response = await fetch(`/connect-client`, {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ phone: phoneNumber })
+                  body: JSON.stringify({ email, phone })
               });
 
               const data = await response.json();
