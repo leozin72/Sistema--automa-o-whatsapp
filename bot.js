@@ -23,6 +23,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type']
 }));
 
+// Middleware para parsing de JSON
+app.use(express.json());
+
 // Gerar QR Code fixo para o bot
 let qrCodeGlobal = null; // QR Code único do sistema
 async function gerarQRCodeGlobal() {
@@ -76,6 +79,39 @@ async function iniciarConexaoCliente(clienteId) {
 
     client.initialize();
 }
+
+// Endpoint para validar número de telefone e conectar cliente
+app.post('/connect-client/:email', async (req, res) => {
+    const email = req.params.email;
+    const { phone } = req.body; // Captura o número de telefone enviado no JSON
+
+    if (!phone) {
+        return res.status(400).send({ error: "Número de telefone é obrigatório." });
+    }
+
+    try {
+        const userId = await buscarIdUsuario(email);
+        if (!userId) {
+            return res.status(404).send({ error: "Usuário não encontrado." });
+        }
+
+        // Registra o número no banco de dados
+        await pool.query(
+            "INSERT INTO conexoes (id_usuario, numero_whatsapp, status) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            [userId, phone, 'desconectado']
+        );
+
+        if (!sessions[userId]) {
+            console.log(`Iniciando conexão para cliente ${email}`);
+            await iniciarConexaoCliente(userId);
+        }
+
+        res.status(200).send({ message: "Número validado e cliente conectado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao conectar cliente:", error.message);
+        res.status(500).send({ error: "Erro interno do servidor." });
+    }
+});
 
 // Endpoint para retornar QR Code fixo
 app.get('/generate-qr', async (req, res) => {
