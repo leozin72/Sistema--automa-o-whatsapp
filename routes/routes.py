@@ -52,7 +52,9 @@ def login():
 
         usuario = Usuario.query.filter_by(email=email).first()
         if usuario and check_password_hash(usuario.senha, senha):
+            # Salva tanto o ID quanto o email do usuário na sessão
             session['usuario'] = usuario.id
+            session['usuario_email'] = usuario.email  # Adiciona o email à sessão
             return redirect(url_for('routes.dashboard'))
         return "Credenciais incorretas."
     return render_template('login.html')
