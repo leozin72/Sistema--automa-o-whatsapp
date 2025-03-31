@@ -118,11 +118,21 @@ app.get('/generate-qr/:email', async (req, res) => {
             return res.status(404).send({ error: "Usuário não encontrado no banco de dados." });
         }
 
+        // Verifica o status da sessão
+        if (sessions[userId]?.status === "connected") {
+            console.log(`Cliente já conectado: ${email}`);
+            return res.status(200).send({
+                message: "Cliente conectado com sucesso!",
+                status: "connected"
+            });
+        }
+
         // Verifica se já existe um QR Code na sessão
         if (sessions[userId]?.qrCodeImage) {
             console.log("QR Code existente retornado com sucesso!");
             return res.status(200).send({
-                message: "QR Code gerado anteriormente.",
+                message: "QR Code gerado anteriormente. Aguarde a conexão.",
+                status: sessions[userId].status,
                 qr_code: sessions[userId].qrCodeImage
             });
         }
@@ -138,6 +148,7 @@ app.get('/generate-qr/:email', async (req, res) => {
             console.log("QR Code gerado e retornado com sucesso!");
             return res.status(200).send({
                 message: "QR Code gerado e cliente iniciado!",
+                status: "awaiting_scan",
                 qr_code: qrCodeImage
             });
         } else {
