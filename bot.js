@@ -93,7 +93,7 @@ client.initialize();
 // Função para enviar dados ao Flask
 async function enviarDadosParaFlask(clienteId, numeroWhatsApp) {
     try {
-        const response = await axios.post('http://127.0.0.1:5000/salvar-numero', {
+        const response = await axios.post('https://sistema-whatsapp-elite.onrender.com/salvar-numero', {
             cliente_id: clienteId,
             numero_whatsapp: numeroWhatsApp
         });
