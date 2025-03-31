@@ -131,7 +131,7 @@ def whatsapp():
         print(f"Erro ao carregar WhatsApp: {e}")
         return render_template('whatsapp.html', mensagens=[], time=int(time.time()))
 
-@routes.route('/gerar_qr', methods=['GET'])
+@routes.route('/gerar_qr/<email>', methods=['GET'])
 @login_required
 def gerar_qr():
     try:
