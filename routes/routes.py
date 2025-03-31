@@ -179,38 +179,26 @@ def gerar_qr():
         print(f"Erro inesperado: {str(e)}")
         return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
 
-@routes.route('/connect-client', methods=['POST'])
-def connect_client():
+@routes.route('/salvar-numero', methods=['POST'])
+def salvar_numero():
     try:
-        # Obtém os dados enviados pelo frontend
         data = request.get_json()
-        email = data.get('email')
-        phone = data.get('phone')
+        cliente_id = data.get('cliente_id')
+        numero_whatsapp = data.get('numero_whatsapp')
 
-        # Valida se os campos obrigatórios estão preenchidos
-        if not email or not phone:
-            return jsonify({"error_message": "Email e número de telefone são obrigatórios."}), 400
+        if not cliente_id or not numero_whatsapp:
+            return jsonify({"error_message": "Dados incompletos."}), 400
 
-        # Faz a chamada ao serviço Node.js
-        node_endpoint = f"https://sistema-automa-o-whatsapp.onrender.com/connect-client/{email}"
-        response = requests.post(node_endpoint, json={"phone": phone}, timeout=10)
+        conexao = Conexoes(cliente_id=cliente_id, numero_whatsapp=numero_whatsapp, status='conectado')
+        db.session.add(conexao)
+        db.session.commit()
 
-        # Lida com a resposta do serviço Node.js
-        if response.status_code == 200:
-            return jsonify({"message": "Número validado e cliente conectado com sucesso!"}), 200
-        elif response.status_code == 404:
-            return jsonify({"error_message": "Usuário não encontrado."}), 404
-        else:
-            return jsonify({"error_message": "Erro ao conectar cliente. Tente novamente mais tarde."}), response.status_code
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao conectar ao serviço Node.js: {str(e)}")
-        return jsonify({"error_message": "Erro ao conectar ao serviço Node.js. Tente novamente mais tarde."}), 500
-
+        return jsonify({"message": "Número salvo com sucesso!"}), 200
     except Exception as e:
-        print(f"Erro inesperado: {str(e)}")
-        return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
-        
+        db.session.rollback()
+        print(f"Erro ao salvar número: {e}")
+        return jsonify({"error_message": "Erro ao salvar número no banco de dados."}), 500
+
 @routes.route('/buscar_id_por_email/<string:email>', methods=['GET'])
 def buscar_id_por_email(email):
     print("Buscando ID para o email:", email)
