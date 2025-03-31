@@ -94,28 +94,6 @@ app.get('/generate-qr', async (req, res) => {
     }
 });
 
-// Endpoint para conectar cliente via QR Code fixo
-app.post('/connect-client/:email', async (req, res) => {
-    const email = req.params.email;
-
-    try {
-        const userId = await buscarIdUsuario(email);
-        if (!userId) {
-            return res.status(404).send({ error: "Usuário não encontrado." });
-        }
-
-        if (!sessions[userId]) {
-            console.log(`Conectando cliente ${email}`);
-            await iniciarConexaoCliente(userId);
-        }
-
-        res.status(200).send({ message: "Cliente conectado com sucesso!" });
-    } catch (error) {
-        console.error("Erro ao conectar cliente:", error.message);
-        res.status(500).send({ error: "Erro ao conectar cliente." });
-    }
-});
-
 // Endpoint para desativar conexão de um cliente
 app.post('/disconnect-client/:email', async (req, res) => {
     const email = req.params.email;
