@@ -9,7 +9,8 @@
     <h2>Conectar Dispositivo</h2>
     <div id="qr-code-display">
         <p>Escaneie o QR Code abaixo para conectar seu dispositivo ao sistema:</p>
-        <img id="qr-code-image" src="" alt="QR Code do Usuário" class="qr-code-image">
+        <img id="qr-code-image" src="" alt="QR Code do Usuário" class="hidden qr-code-image">
+        <div id="loading-spinner" class="loading-spinner"></div>
     </div>
     <div id="status-message" class="hidden"></div>
     <div id="error-message" class="error-message hidden"></div>
@@ -45,40 +46,73 @@
     font-size: 16px;
     margin-top: 10px;
   }
+
+  .loading-spinner {
+    border: 5px solid #f3f3f3; /* Cor do fundo */
+    border-top: 5px solid #3498db; /* Cor do spinner */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-top: 15px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function () {
     const qrImage = document.getElementById('qr-code-image');
     const statusMessage = document.getElementById('status-message');
     const errorMessage = document.getElementById('error-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const maxAttempts = 100; // Número máximo de tentativas
+    let attempt = 0; // Contador de tentativas
 
-    // Certifique-se de que a variável `userEmail` contenha o email do usuário autenticado
-    const userEmail = "{{ session.usuario_email }}"; // Certifique-se de que o Flask fornece essa informação corretamente
+    // Certifique-se de que o email do usuário está disponível
+    const userEmail = "{{ session.usuario_email }}";
 
-    try {
-        // Verifica se o email está presente
-        if (!userEmail) {
-            throw new Error("Email do usuário não está disponível.");
+    async function carregarQrCode() {
+        try {
+            if (!userEmail) {
+                throw new Error("Email do usuário não está disponível.");
+            }
+
+            // Chama o endpoint para buscar o QR Code
+            const response = await fetch(`/gerar_qr/${userEmail}`, { method: 'GET', cache: 'no-store' });
+
+            if (response.ok) {
+                const data = await response.json();
+                qrImage.src = data.qr_code; // Define o QR Code recebido como a imagem
+                qrImage.classList.remove("hidden");
+                loadingSpinner.classList.add("hidden"); // Esconde o spinner
+                statusMessage.textContent = "Escaneie o QR Code para conectar seu dispositivo!";
+                statusMessage.classList.remove("hidden");
+            } else if (response.status === 202 && attempt < maxAttempts) {
+                attempt++;
+                statusMessage.textContent = `Gerando QR Code... Tentativa ${attempt}/${maxAttempts}`;
+                statusMessage.classList.remove("hidden");
+
+                // Tenta novamente após 3 segundos
+                setTimeout(carregarQrCode, 3000);
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error_message || "Erro ao carregar QR Code. Tente novamente mais tarde.");
+            }
+        } catch (error) {
+            console.error("Erro ao carregar QR Code:", error.message);
+            loadingSpinner.classList.add("hidden"); // Esconde o spinner
+            errorMessage.textContent = error.message;
+            errorMessage.classList.remove("hidden");
         }
-
-        // Chama o endpoint para buscar o QR Code exclusivo do usuário
-        const response = await fetch(`/gerar_qr/${userEmail}`, { method: 'GET', cache: 'no-store' });
-
-        if (response.ok) {
-            const data = await response.json();
-            qrImage.src = data.qr_code; // Define o QR Code recebido como a imagem
-            qrImage.classList.remove("hidden");
-            statusMessage.textContent = "Escaneie o QR Code para conectar seu dispositivo!";
-            statusMessage.classList.remove("hidden");
-        } else {
-            throw new Error("QR Code ainda não gerado. Por favor, tente novamente.");
-        }
-    } catch (error) {
-        console.error("Erro ao carregar QR Code:", error.message);
-        errorMessage.textContent = "Erro ao carregar QR Code. Tente novamente mais tarde.";
-        errorMessage.classList.remove("hidden");
     }
+
+    // Inicia a tentativa de carregar o QR Code
+    loadingSpinner.classList.remove("hidden"); // Mostra o spinner
+    carregarQrCode();
 });
 </script>
 {% endblock %}
