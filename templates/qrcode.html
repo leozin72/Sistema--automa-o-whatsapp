@@ -7,90 +7,70 @@
 
 <div class="qr-code-container">
     <h2>Conectar Dispositivo</h2>
-    <form id="connect-form">
-        <label for="phone-input">Número de Telefone (com DDD):</label>
-        <input type="text" id="phone-input" placeholder="+55 31 99999-9999" required>
-        <button type="submit">Validar e Obter QR Code</button>
-    </form>
-    <div id="qr-code-display" class="hidden">
-        <h3>Escaneie o QR Code abaixo:</h3>
+    <div id="qr-code-display">
+        <p>Escaneie o QR Code abaixo para conectar seu dispositivo ao sistema:</p>
+        <img id="qr-code-image" src="" alt="QR Code Global" class="qr-code-image">
     </div>
     <div id="status-message" class="hidden"></div>
-    <div id="error-message" class="error-message"></div>
+    <div id="error-message" class="error-message hidden"></div>
 </div>
 
 <style>
-  #connect-form {
+  .qr-code-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    text-align: center;
     margin-top: 20px;
   }
 
-  #phone-input {
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  button {
-    padding: 10px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    cursor: pointer;
+  .qr-code-image {
+    max-width: 300px;
+    margin-top: 15px;
   }
 
   .hidden {
     display: none;
   }
+
+  #status-message {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: green;
+  }
+
+  .error-message {
+    color: red;
+    font-size: 16px;
+    margin-top: 10px;
+  }
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-      const form = document.getElementById('connect-form');
-      const phoneInput = document.getElementById('phone-input');
-      const qrDisplay = document.getElementById('qr-code-display');
+  document.addEventListener('DOMContentLoaded', async function () {
+      const qrImage = document.getElementById('qr-code-image');
       const statusMessage = document.getElementById('status-message');
       const errorMessage = document.getElementById('error-message');
 
-      form.addEventListener('submit', async function (event) {
-          event.preventDefault();
+      try {
+          // Chama o endpoint para buscar o QR Code global
+          const response = await fetch('/generate-qr', { method: 'GET', cache: 'no-store' });
 
-          const phoneNumber = phoneInput.value.trim();
-          if (!phoneNumber) {
-              alert("Por favor, insira um número de telefone válido!");
-              return;
-          }
-
-          try {
-              const email = prompt("Digite seu email para prosseguir:");
-              if (!email) return;
-
-              // Valida telefone e obtém QR Code
-              const response = await fetch(`/connect-client`, {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({ email, phone })
-              });
-
+          if (response.ok) {
               const data = await response.json();
-
-              if (response.ok) {
-                  statusMessage.textContent = "Número de telefone validado com sucesso! Escaneie o QR Code abaixo.";
-                  statusMessage.classList.remove("hidden");
-                  qrDisplay.innerHTML = `<img src="/generate-qr" alt="QR Code Global">`;
-                  qrDisplay.classList.remove("hidden");
-                  form.classList.add("hidden"); // Esconde o formulário após validação
-              } else {
-                  throw new Error(data.error || "Erro ao validar número de telefone.");
-              }
-          } catch (error) {
-              console.error("Erro ao conectar cliente:", error.message);
-              errorMessage.textContent = "Erro ao validar número. Por favor, tente novamente.";
+              qrImage.src = data.qr_code; // Define o QR Code recebido como a imagem
+              qrImage.classList.remove("hidden");
+              statusMessage.textContent = "Escaneie o QR Code para conectar seu dispositivo!";
+              statusMessage.classList.remove("hidden");
+          } else {
+              throw new Error("QR Code ainda não gerado. Por favor, tente novamente.");
           }
-      });
+      } catch (error) {
+          console.error("Erro ao carregar QR Code:", error.message);
+          errorMessage.textContent = "Erro ao carregar QR Code. Tente novamente mais tarde.";
+          errorMessage.classList.remove("hidden");
+      }
   });
 </script>
 {% endblock %}
