@@ -179,38 +179,22 @@ def gerar_qr():
         print(f"Erro inesperado: {str(e)}")
         return jsonify({"error_message": "Ocorreu um erro inesperado. Por favor, tente novamente."}), 500
 
-@routes.route('/salvar-numero', methods=['POST'])
-def salvar_numero():
+@routes.route('/status/<email>', methods=['GET'])
+def status(email):
     try:
-        data = request.get_json()
-        cliente_id = data.get('cliente_id')
-        numero_whatsapp = data.get('numero_whatsapp')
-
-        if not cliente_id or not numero_whatsapp:
-            return jsonify({"error_message": "Dados incompletos."}), 400
-
-        conexao = Conexoes(cliente_id=cliente_id, numero_whatsapp=numero_whatsapp, status='conectado')
-        db.session.add(conexao)
-        db.session.commit()
-
-        return jsonify({"message": "Número salvo com sucesso!"}), 200
-    except Exception as e:
-        db.session.rollback()
-        print(f"Erro ao salvar número: {e}")
-        return jsonify({"error_message": "Erro ao salvar número no banco de dados."}), 500
-
-@routes.route('/buscar_id_por_email/<string:email>', methods=['GET'])
-def buscar_id_por_email(email):
-    print("Buscando ID para o email:", email)
-
-    usuario = Usuario.query.filter_by(email=email).first()
-    if usuario:
-        print("Usuário encontrado:", usuario.id)
-        return jsonify({"id": usuario.id})
-
-    print("Erro: Usuário não encontrado para o email:", email)
-    return jsonify({"error": "Usuário não encontrado"}), 404
-
+        # Retorna o status do bot para o usuário
+        print(f"Consultando status para o usuário: {email}")
+        resposta = requests.get(
+            f"https://sistema-automa-o-whatsapp.onrender.com/bot-status/{email}",
+            timeout=5
+        )
+        if resposta.status_code == 200:
+            return jsonify(resposta.json()), 200
+        else:
+            return jsonify({"error_message": "Erro ao consultar status do bot."}), resposta.status_code
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error_message": "Erro ao conectar ao serviço do bot."}), 500
+        
 @routes.route('/salvar_config', methods=['POST'])
 @login_required
 def salvar_config():
